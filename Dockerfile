@@ -6,4 +6,4 @@ WORKDIR /app
 RUN npm install -g pnpm
 
 # 設定容器啟動時的指令
-CMD ["sh", "-c", "pnpm install && pnpm dev"] 
+# CMD ["sh", "-c", "pnpm install && pnpm dev"] 

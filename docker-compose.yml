@@ -1,5 +1,5 @@
 services:
-  beyond-calculation:
+  web:
     build: .
     ports:
       - "5173:5173"
@@ -7,4 +7,6 @@ services:
       - .:/app
     environment:
       - NODE_ENV=development
-    command: sh -c "pnpm install && pnpm dev --host"
+    # command: sh -c "pnpm install && pnpm dev --host"
+    tty: true
+    stdin_open: true
