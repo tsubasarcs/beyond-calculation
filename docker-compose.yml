@@ -3,9 +3,12 @@ services:
     build: .
     ports:
       - "5173:5173"
+      - "4173:4173"
     volumes:
       - .:/app
     environment:
       - NODE_ENV=development
+      - HOST=0.0.0.0
+    command: /bin/sh -c "sleep infinity"
     tty: true
     stdin_open: true
