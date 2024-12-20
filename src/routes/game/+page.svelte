@@ -1,10 +1,11 @@
 <script lang="ts">
+  import { base } from '$app/paths';
   import { goto } from '$app/navigation';
   import Inventory from '../../components/Inventory.svelte';
   import { gameState, useItem, consumeHealth, consumeSpirit } from '$lib/stores/gameState';
 
   function handleReturn() {
-    goto('/');
+    goto(base || '/');
   }
 </script>
 

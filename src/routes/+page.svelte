@@ -1,8 +1,9 @@
 <script lang="ts">
+  import { base } from '$app/paths';
   import { goto } from '$app/navigation';
 
   function handleStart() {
-    goto('/game');
+    goto(`${base}/game`);
   }
 </script>
 
