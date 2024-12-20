@@ -25,7 +25,7 @@
         <div class="border border-white/30 p-2 mb-2 bg-black/50 w-[100px] h-[50px] flex items-center justify-center"></div>
         <div class="flex flex-col items-center w-full">
           <span class="transform mb-1">↑</span>
-          <span class="max-w-[150px] text-center">上方的彈���小視窗會有玩家所在的場景位置的提示(視窗彈出時間:5秒)</span>
+          <span class="max-w-[150px] text-center">上方的彈出小視窗會有玩家所在的場景位置的提示(視窗彈出時間:5秒)</span>
         </div>
       </div>
     </div>
@@ -96,25 +96,25 @@
               class="border-[1px] border-white/30 m-[1px] bg-black/50 text-white/70 text-sm flex items-center justify-center hover:bg-white/10 transition-colors"
               on:click={() => consumeHealth(1)}
             >
-              消耗體力1
+              體力-1
             </button>
             <button 
               class="border-[1px] border-white/30 m-[1px] bg-black/50 text-white/70 text-sm flex items-center justify-center hover:bg-white/10 transition-colors"
               on:click={() => consumeSpirit(1)}
             >
-              消耗精神1
+              精神-1
             </button>
             <button 
               class="border-[1px] border-white/30 m-[1px] bg-black/50 text-white/70 text-sm flex items-center justify-center hover:bg-white/10 transition-colors"
               on:click={() => consumeHealth(10)}
             >
-              消耗體力10
+              體力-10
             </button>
             <button 
               class="border-[1px] border-white/30 m-[1px] bg-black/50 text-white/70 text-sm flex items-center justify-center hover:bg-white/10 transition-colors"
               on:click={() => consumeSpirit(10)}
             >
-              消耗精神10
+              精神-10
             </button>
           </div>
         </div>

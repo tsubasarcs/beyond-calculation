@@ -29,7 +29,7 @@ const initialState: GameState = {
   items: [
     {
       id: 'health-potion',
-      name: '體力藥水',
+      name: '體力全滿藥水',
       type: 'recovery',
       description: '回復全部體力值',
       effect: {
@@ -40,7 +40,7 @@ const initialState: GameState = {
     },
     {
       id: 'spirit-potion',
-      name: '精神藥水',
+      name: '精神全滿藥水',
       type: 'recovery',
       description: '回復全部精神值',
       effect: {
