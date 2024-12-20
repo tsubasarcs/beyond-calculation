@@ -7,12 +7,15 @@ const config = {
 		adapter: adapter({
 			pages: 'build',
 			assets: 'build',
-			fallback: 'index.html',
+			fallback: '200.html',
 			precompress: false,
 			strict: true
 		}),
 		paths: {
 			base: process.env.NODE_ENV === 'production' ? '/beyond-calculation' : ''
+		},
+		prerender: {
+			handleHttpError: 'warn'
 		}
 	},
 	preprocess: vitePreprocess()
