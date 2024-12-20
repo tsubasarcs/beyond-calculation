@@ -85,3 +85,8 @@ export function consumeSpirit(amount: number) {
     spirit: Math.max(0, state.spirit - amount)
   }));
 }
+
+// 添加重置函數
+export function resetGameState() {
+  gameState.set(initialState);
+}

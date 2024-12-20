@@ -2,10 +2,11 @@
   import { base } from '$app/paths';
   import { goto } from '$app/navigation';
   import Inventory from '../../components/Inventory.svelte';
-  import { gameState, useItem, consumeHealth, consumeSpirit } from '$lib/stores/gameState';
+  import { gameState, useItem, consumeHealth, consumeSpirit, resetGameState } from '$lib/stores/gameState';
 
-  function handleReturn() {
-    goto(base || '/');
+  async function handleReturn() {
+    resetGameState();  // 重置遊戲狀態
+    await goto(base || '/');
   }
 </script>
 
@@ -37,7 +38,7 @@
     <div class="h-1/2 relative flex flex-col">
       <!-- 說明文字區域 -->
       <div class="h-[20%] relative">
-        <!-- 左側道具欄說明 -->
+        <!-- 左側���具欄說明 -->
         <div class="absolute left-4 -top-10 text-white/70 text-sm">
           <div class="max-w-[100px] text-center whitespace-pre-line">物品籃內的物品可以點擊，點擊後會有物品頁面彈出</div>
           <div class="max-w-[100px] text-center whitespace-pre-line">↓</div>
