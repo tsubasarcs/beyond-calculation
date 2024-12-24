@@ -1,19 +1,20 @@
-import { writable, derived } from 'svelte/store';
+import { writable, derived, get } from 'svelte/store';
 
 interface Item {
   id: string;
   name: string;
   type: 'recovery' | 'normal' | 'weapon' | 'coin';
   description: string;
+  image: string;
   effect?: {
     type: 'health' | 'spirit';
     amount: number;
   };
-  quantity?: number;
+  quantity: number;
   usable: boolean;
 }
 
-interface GameState {
+export interface GameState {
   health: number;
   maxHealth: number;
   spirit: number;
@@ -21,51 +22,79 @@ interface GameState {
   items: Item[];
 }
 
-const initialState: GameState = {
-  health: 70,
-  maxHealth: 100,
-  spirit: 50,
-  maxSpirit: 100,
-  items: [
-    {
-      id: 'health-potion',
-      name: '體力全滿藥水',
-      type: 'recovery',
-      description: '回復全部體力值',
-      effect: {
-        type: 'health',
-        amount: 100
+// 將初始狀態定義為一個函數，每次調用時返回新的對象
+function getInitialState(): GameState {
+  return {
+    health: 15,
+    maxHealth: 30,
+    spirit: 20,
+    maxSpirit: 30,
+    items: [
+      {
+        id: 'screwdriver',
+        name: '螺絲起子',
+        type: 'normal',
+        description: '一把普通的螺絲起子，看起來有點舊了。',
+        image: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Screwdriver',
+        quantity: 1,
+        usable: true
       },
-      usable: true
-    },
-    {
-      id: 'spirit-potion',
-      name: '精神全滿藥水',
-      type: 'recovery',
-      description: '回復全部精神值',
-      effect: {
-        type: 'spirit',
-        amount: 100
+      {
+        id: 'health-potion',
+        name: '體力全滿藥水',
+        type: 'recovery',
+        description: '回復全部體力值',
+        image: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Health+Potion',
+        effect: {
+          type: 'health',
+          amount: 30
+        },
+        quantity: 3,
+        usable: true
       },
-      usable: true
-    }
-  ]
-};
+      {
+        id: 'spirit-potion',
+        name: '精神全滿藥水',
+        type: 'recovery',
+        description: '回復全部精神值',
+        image: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Spirit+Potion',
+        effect: {
+          type: 'spirit',
+          amount: 30
+        },
+        quantity: 3,
+        usable: true
+      }
+    ]
+  };
+}
 
-export const gameState = writable<GameState>(initialState);
+// 初始化 store
+export const gameState = writable<GameState>(getInitialState());
 
 // 使用道具的函數
 export function useItem(itemId: string) {
   gameState.update(state => {
     const item = state.items.find(i => i.id === itemId);
-    if (!item?.effect) return state;
+    if (!item || item.quantity <= 0) return state;
 
     let newState = { ...state };
     
-    if (item.effect.type === 'health') {
-      newState.health = Math.min(state.maxHealth, state.health + item.effect.amount);
-    } else if (item.effect.type === 'spirit') {
-      newState.spirit = Math.min(state.maxSpirit, state.spirit + item.effect.amount);
+    // 處理道具效果
+    if (item.effect) {
+      if (item.effect.type === 'health') {
+        newState.health = Math.min(state.maxHealth, state.health + item.effect.amount);
+      } else if (item.effect.type === 'spirit') {
+        newState.spirit = Math.min(state.maxSpirit, state.spirit + item.effect.amount);
+      }
+    }
+
+    // 減少道具數量
+    item.quantity--;
+    
+    // 如果道具數量為 0，從道具欄移除
+    if (item.quantity <= 0) {
+      newState.items = state.items.filter(i => i.id !== itemId);
     }
 
     return newState;
@@ -86,7 +115,12 @@ export function consumeSpirit(amount: number) {
   }));
 }
 
-// 添加重置函數
+// 修改重置函數
 export function resetGameState() {
-  gameState.set(initialState);
+  gameState.set(getInitialState());
+}
+
+// 添加 getItemById 函數
+export function getItemById(itemId: string): Item | undefined {
+  return get(gameState).items.find(item => item.id === itemId);
 }

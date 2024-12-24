@@ -3,7 +3,7 @@
   import { goto } from '$app/navigation';
 
   function handleStart() {
-    goto(`${base}/game`);
+    goto(`${base}/tutorial`);
   }
 
   // 添加鍵盤事件處理
