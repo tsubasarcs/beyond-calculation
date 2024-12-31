@@ -3,7 +3,7 @@
   import { goto } from '$app/navigation';
   import Inventory from '../../components/Inventory.svelte';
   import { gameState, useItem, consumeHealth, consumeSpirit, resetGameState } from '$lib/stores/gameState';
-  import { currentScene, changeScene, messageState } from '$lib/stores/sceneState';
+  import { currentScene, changeScene, messageState, resetSceneState } from '$lib/stores/sceneState';
 
   function isItemScene(scene: Scene | ItemScene): scene is ItemScene {
     return 'type' in scene && scene.type === 'item';
@@ -11,6 +11,7 @@
 
   async function handleReturn() {
     resetGameState();
+    resetSceneState();
     await goto(base || '/');
   }
 
@@ -75,10 +76,15 @@
             {#if !isItemScene($currentScene)}
               {#each $gameState.items as item, i}
                 <button 
-                  class="border-[1px] border-white/30 m-[1px] bg-black/50 text-white/70 text-sm flex items-center justify-center hover:bg-white/10 transition-colors"
+                  class="border-[1px] border-white/30 m-[1px] bg-black/50 text-white/70 text-sm flex flex-col items-center justify-center hover:bg-white/10 transition-colors"
                   on:click={() => handleItemClick(item.id)}
                 >
-                  {item.name} ({item.quantity})
+                  <img 
+                    src={item.quantity > 0 ? item.icon : (item.iconEmpty || item.icon)} 
+                    alt={item.name}
+                    class="w-[30px] h-[30px] object-cover mb-1"
+                  />
+                  <span class="text-xs">{item.name} ({item.quantity})</span>
                 </button>
               {/each}
               {#each Array(4 - $gameState.items.length) as _, i}

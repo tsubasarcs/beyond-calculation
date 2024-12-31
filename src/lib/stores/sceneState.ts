@@ -1,6 +1,6 @@
 import { writable, derived, get } from 'svelte/store';
 import type { GameState } from './gameState';
-import { gameState, getItemById, useItem } from './gameState';
+import { gameState, getItemById, useItem, refillItem } from './gameState';
 
 // 定義選項的介面
 interface Choice {
@@ -55,30 +55,38 @@ const scenes: Record<string, Scene | ItemScene> = {
     image: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Room',
     dialogues: [],
     choices: [
-        {
-            text: '翻找床底 體力-1',
-            nextScene: 'day1',
-            cost: {
-                type: 'health',
-                amount: 1
-            }
-        },
-        {
-            text: '看窗外 體力-1',
-            nextScene: 'day1',
-            cost: {
-                type: 'health',
-                amount: 1
-            }
-        },
-        {
-            text: '直接出門 體力-1',
-            nextScene: 'day1',
-            cost: {
-                type: 'health',
-                amount: 1
-            }
+      {
+        text: '翻找床底 體力-1',
+        nextScene: 'day1',
+        cost: {
+          type: 'health',
+          amount: 1
         }
+      },
+      {
+        text: '看窗外 體力-1',
+        nextScene: 'day1',
+        cost: {
+          type: 'health',
+          amount: 1
+        }
+      },
+      {
+        text: '直接出門 體力-1',
+        nextScene: 'day1',
+        cost: {
+          type: 'health',
+          amount: 1
+        }
+      },
+      {
+        text: '撿起地上的美工刀刀片',
+        nextScene: 'get_blade',  // 前往獲得刀片的場景
+        cost: {
+          type: 'spirit',
+          amount: 1
+        }
+      }
     ],
   },
   // ... 可以繼續添加更多場景
@@ -134,6 +142,26 @@ const scenes: Record<string, Scene | ItemScene> = {
         nextScene: ''  // 將在使用時動態設置
       }
     ]
+  },
+
+  get_blade: {
+    id: 'get_blade',
+    type: 'item',
+    title: '發現刀片',
+    description: '找到了一片美工刀片',
+    image: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Blade',
+    prevScene: '',
+    itemId: '',
+    choices: [
+      {
+        text: '裝上刀片',
+        nextScene: '',
+        onSelect: () => {
+          refillItem('cutter', 1);
+          showMessage('美工刀可使用次數 +1');
+        }
+      }
+    ]
   }
 };
 
@@ -177,6 +205,10 @@ export function changeScene(sceneId: string, params?: any) {
     nextScene = { ...scenes.item_use_fail };
     (nextScene as ItemScene).prevScene = currentSceneId;
     nextScene.choices[0].nextScene = params.returnScene || currentSceneId;
+  } else if (sceneId === 'get_blade') {
+    nextScene = { ...scenes.get_blade };
+    (nextScene as ItemScene).prevScene = currentSceneId;
+    nextScene.choices[0].nextScene = currentSceneId;
   } else {
     nextScene = scenes[sceneId];
   }
@@ -231,7 +263,7 @@ export function showMessage(message: string) {
   }, 2000); // 2秒後自動消失
 }
 
-// 修改 createItemUseScene 函數中的螺絲起子使用邏輯
+// 修改 createItemUseScene 函數中的美工刀使用邏輯
 export function createItemUseScene(itemId: string, currentSceneId: string) {
   const item = getItemById(itemId);
   if (!item) return null;
@@ -239,7 +271,7 @@ export function createItemUseScene(itemId: string, currentSceneId: string) {
   const newScene = { ...scenes.item_use } as ItemScene;
   
   newScene.description = item.description;
-  newScene.image = item.image;
+  newScene.image = item.quantity > 0 ? item.image : (item.imageEmpty || item.image);
   newScene.itemId = itemId;
   newScene.prevScene = currentSceneId;
 
@@ -256,8 +288,38 @@ export function createItemUseScene(itemId: string, currentSceneId: string) {
         nextScene: currentSceneId
       }
     ];
+  } else if (item.id === 'cutter') {
+    if (item.quantity <= 0) {
+      // 美工刀沒有刀片時的選項
+      newScene.choices = [
+        {
+          text: '無法使用',
+          nextScene: currentSceneId,
+          onSelect: () => showMessage('需要補充刀片')
+        },
+        {
+          text: '返回',
+          nextScene: currentSceneId
+        }
+      ];
+    } else {
+      // 美工刀有刀片時的選項
+      newScene.choices = [
+        {
+          text: '使用',
+          nextScene: currentSceneId,
+          onSelect: () => {
+            useItem(itemId);  // 使用道具會減少數量
+            showMessage('使用了美工刀');
+          }
+        },
+        {
+          text: '返回',
+          nextScene: currentSceneId
+        }
+      ];
+    }
   } else {
-    // 非回復道具（如螺絲起子）
     newScene.choices = [
       {
         text: '使用',
@@ -272,4 +334,9 @@ export function createItemUseScene(itemId: string, currentSceneId: string) {
   }
 
   return newScene;
+} 
+
+// 添加重置場景狀態的函數
+export function resetSceneState() {
+  sceneState.set(initialSceneState);
 } 

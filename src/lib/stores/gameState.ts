@@ -6,11 +6,15 @@ interface Item {
   type: 'recovery' | 'normal' | 'weapon' | 'coin';
   description: string;
   image: string;
+  icon: string;
+  iconEmpty?: string;
+  imageEmpty?: string;
   effect?: {
     type: 'health' | 'spirit';
     amount: number;
   };
   quantity: number;
+  permanent?: boolean;
   usable: boolean;
 }
 
@@ -31,12 +35,16 @@ function getInitialState(): GameState {
     maxSpirit: 30,
     items: [
       {
-        id: 'screwdriver',
-        name: '螺絲起子',
+        id: 'cutter',
+        name: '美工刀',
         type: 'normal',
-        description: '一把普通的螺絲起子，看起來有點舊了。',
-        image: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Screwdriver',
-        quantity: 1,
+        description: '一把普通的美工刀，刀片似乎還很新。',
+        image: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Cutter',
+        icon: 'https://placehold.co/30x30/000000/FFFFFF/png?text=Cut',
+        imageEmpty: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Empty+Cutter',
+        iconEmpty: 'https://placehold.co/30x30/000000/FFFFFF/png?text=Empty',
+        quantity: 3,
+        permanent: true,
         usable: true
       },
       {
@@ -45,6 +53,7 @@ function getInitialState(): GameState {
         type: 'recovery',
         description: '回復全部體力值',
         image: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Health+Potion',
+        icon: 'https://placehold.co/30x30/000000/FFFFFF/png?text=HP',
         effect: {
           type: 'health',
           amount: 30
@@ -58,6 +67,7 @@ function getInitialState(): GameState {
         type: 'recovery',
         description: '回復全部精神值',
         image: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Spirit+Potion',
+        icon: 'https://placehold.co/30x30/000000/FFFFFF/png?text=SP',
         effect: {
           type: 'spirit',
           amount: 30
@@ -92,8 +102,8 @@ export function useItem(itemId: string) {
     // 減少道具數量
     item.quantity--;
     
-    // 如果道具數量為 0，從道具欄移除
-    if (item.quantity <= 0) {
+    // 只有非永久道具且數量為 0 時才移除
+    if (item.quantity <= 0 && !item.permanent) {
       newState.items = state.items.filter(i => i.id !== itemId);
     }
 
@@ -123,4 +133,15 @@ export function resetGameState() {
 // 添加 getItemById 函數
 export function getItemById(itemId: string): Item | undefined {
   return get(gameState).items.find(item => item.id === itemId);
+}
+
+// 添加補充道具數量的函數
+export function refillItem(itemId: string, amount: number) {
+  gameState.update(state => {
+    const item = state.items.find(i => i.id === itemId);
+    if (!item) return state;
+
+    item.quantity += amount;
+    return state;
+  });
 }
