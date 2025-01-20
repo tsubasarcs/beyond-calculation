@@ -1,6 +1,7 @@
 import { writable, derived, get } from 'svelte/store';
 import type { GameState } from './gameState';
 import { gameState, getItemById, useItem, refillItem } from './gameState';
+import { base } from '$app/paths';
 
 // 定義消耗/獲得的類型
 interface Cost {
@@ -56,7 +57,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     id: 'room',
     title: '房間',
     description: '',
-    image: '/images/scenes/day1/sleep_01.png',
+    image: `${base}/images/scenes/day1/sleep_01.png`,
     dialogues: [],
     choices: [
       {

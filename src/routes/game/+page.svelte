@@ -65,7 +65,7 @@
         <div class="absolute top-0 left-1/2 transform -translate-x-1/2 flex flex-col items-center w-[230px]">
           <div class="relative w-full">
             <img 
-              src="/images/ui/bubble_460x200.png" 
+              src="{base}/images/ui/bubble_460x200.png" 
               alt="Title Bubble"
               class="w-full"
             />
@@ -82,7 +82,7 @@
       {#if $messageState}
         <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full flex flex-col items-center">
           <img 
-            src="/images/ui/message_box_1390x310.png" 
+            src="{base}/images/ui/message_box_1390x310.png" 
             alt="Message Box"
             class="w-full"
           />
@@ -99,7 +99,7 @@
     <div class="h-1/2 relative flex flex-col">
       <!-- 背景圖片 -->
       <img 
-        src="/images/ui/bg_1440x1500.png" 
+        src="{base}/images/ui/bg_1440x1500.png" 
         alt="Bottom Area Background"
         class="absolute inset-0 w-full h-full object-cover"
       />
@@ -111,7 +111,7 @@
           <!-- 上半部：錢幣顯示 -->
           <div class="flex items-end gap-2">
             <img 
-              src="/images/ui/coin_160x160.png" 
+              src="{base}/images/ui/coin_160x160.png" 
               alt="Coin"
               class="w-8 h-8"
             />
@@ -125,7 +125,7 @@
               <div class="relative h-[20px] flex-1">
                 <!-- 體力條圖片 -->
                 <img 
-                  src="/images/ui/stamina_820x85.png" 
+                  src="{base}/images/ui/stamina_820x85.png" 
                   alt="Health Bar"
                   class="w-full h-full bg-white"
                 />
@@ -145,7 +145,7 @@
               <div class="relative h-[20px] flex-1">
                 <!-- 精神條圖片 -->
                 <img 
-                  src="/images/ui/mental_810x85.png" 
+                  src="{base}/images/ui/mental_810x85.png" 
                   alt="Spirit Bar"
                   class="w-full h-full bg-white"
                 />
@@ -173,7 +173,7 @@
                   <div class="relative">
                     <!-- 道具格子背景圖 -->
                     <img 
-                      src="/images/ui/Inventory_480x270.png" 
+                      src="{base}/images/ui/Inventory_480x270.png" 
                       alt="Item Slot"
                       class="w-full h-full"
                     />
@@ -190,7 +190,7 @@
                   <!-- 空道具格子 -->
                   <div class="relative">
                     <img 
-                      src="/images/ui/Inventory_480x270.png" 
+                      src="{base}/images/ui/Inventory_480x270.png" 
                       alt="Empty Slot"
                       class="w-full h-full"
                     />
@@ -201,7 +201,7 @@
                   <!-- 道具場景時的空格子 -->
                   <div class="relative">
                     <img 
-                      src="/images/ui/Inventory_480x270.png" 
+                      src="{base}/images/ui/Inventory_480x270.png" 
                       alt="Empty Slot"
                       class="w-full h-full"
                     />
@@ -219,7 +219,7 @@
                 <div class="relative">
                   <!-- 選項背景圖 -->
                   <img 
-                    src="/images/ui/options_960x270.png" 
+                    src="{base}/images/ui/options_960x270.png" 
                     alt="Option Slot"
                     class="w-full h-full"
                   />
@@ -249,7 +249,7 @@
                 <!-- 空選項格子 -->
                 <div class="relative">
                   <img 
-                    src="/images/ui/options_960x270.png" 
+                    src="{base}/images/ui/options_960x270.png" 
                     alt="Empty Option Slot"
                     class="w-full h-full"
                   />
