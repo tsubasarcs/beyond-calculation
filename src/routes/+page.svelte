@@ -21,7 +21,7 @@
   tabindex="0"
 >
   <img 
-    src="/images/start.png" 
+    src="{base}/images/start.png" 
     alt="Start Screen" 
     class="max-h-screen max-w-full w-auto h-auto transition-transform hover:scale-[1.02]"
   />
