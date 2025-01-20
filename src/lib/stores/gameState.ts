@@ -23,6 +23,7 @@ export interface GameState {
   maxHealth: number;
   spirit: number;
   maxSpirit: number;
+  money: number;
   items: Item[];
 }
 
@@ -33,6 +34,7 @@ function getInitialState(): GameState {
     maxHealth: 30,
     spirit: 20,
     maxSpirit: 30,
+    money: 1000,
     items: [
       {
         id: 'cutter',
@@ -144,4 +146,12 @@ export function refillItem(itemId: string, amount: number) {
     item.quantity += amount;
     return state;
   });
+}
+
+// 添加處理金錢變化的函數
+export function addMoney(amount: number) {
+  gameState.update(state => ({
+    ...state,
+    money: state.money + amount
+  }));
 }

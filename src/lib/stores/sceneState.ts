@@ -2,35 +2,39 @@ import { writable, derived, get } from 'svelte/store';
 import type { GameState } from './gameState';
 import { gameState, getItemById, useItem, refillItem } from './gameState';
 
+// 定義消耗/獲得的類型
+interface Cost {
+  type: 'health' | 'spirit' | 'money';  // 添加 'money' 類型
+  amount: number;
+}
+
 // 定義選項的介面
 interface Choice {
   text: string;                    // 選項文字
-  nextScene: string;               // 選擇後前往的場景
-  cost?: {                         // 選擇的代價
-    type: 'health' | 'spirit';
-    amount: number;
-  };
+  nextScene?: string;              // 選擇後前往的場景
+  cost?: Cost;                     // 選擇的代價或獲得
   condition?: (state: GameState) => boolean;  // 選項出現的條件
-  onSelect?: () => void;          // 添加 onSelect 屬性
+  onSelect?: () => void;          // 選擇時的額外效果
 }
 
 // 定義場景的介面
-interface Scene {
-  id: string;                      // 場景唯一標識
-  image?: string;                  // 場景圖片
-  title?: string;                  // 場景標題
-  description?: string;            // 場景描述
-  dialogues?: string[];           // 對話框文字
-  choices: Choice[];               // 可選選項
-  onEnter?: (state: GameState) => void;  // 進入場景時觸發
-  onExit?: (state: GameState) => void;   // 離開場景時觸發
+export interface Scene {
+  id: string;
+  type?: string;
+  image?: string;
+  title?: string;
+  description?: string;
+  dialogues?: string[];
+  choices: Choice[];
+  onEnter?: (state: GameState) => void;
+  onExit?: (state: GameState) => void;
 }
 
-// 添加道具相關場景類型
-interface ItemScene extends Scene {
+// 定義道具相關場景類型
+export interface ItemScene extends Scene {
   type: 'item';
-  itemId: string;    // 獲得/使用的道具ID
-  prevScene: string; // 記錄上一個場景
+  itemId: string;
+  prevScene: string;
 }
 
 // 修改場景定義
@@ -52,7 +56,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     id: 'room',
     title: '房間',
     description: '',
-    image: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Room',
+    image: '/images/scenes/day1/sleep_01.png',
     dialogues: [],
     choices: [
       {
@@ -64,23 +68,23 @@ const scenes: Record<string, Scene | ItemScene> = {
         }
       },
       {
-        text: '看窗外 體力-1',
+        text: '看窗外 精神-1',
         nextScene: 'day1',
         cost: {
-          type: 'health',
+          type: 'spirit',
           amount: 1
         }
       },
       {
-        text: '直接出門 體力-1',
+        text: '撿到錢 錢+100',
         nextScene: 'day1',
         cost: {
-          type: 'health',
-          amount: 1
+          type: 'money',
+          amount: 100
         }
       },
       {
-        text: '撿起地上的美工刀刀片',
+        text: '撿起地上的美工刀刀片 精神-1',
         nextScene: 'get_blade',  // 前往獲得刀片的場景
         cost: {
           type: 'spirit',
