@@ -44,7 +44,7 @@
   <div class="w-full max-w-md relative min-h-screen flex flex-col">
     <!-- 返回按鈕 -->
     <button 
-      class="absolute top-4 left-4 text-white/70 text-sm border border-white/30 bg-black/50 px-3 py-1.5 rounded hover:bg-white/10 transition-colors z-50"
+      class="absolute top-4 left-4 text-white/70 text-xl border border-white/30 bg-black/50 px-3 py-1.5 rounded hover:bg-white/10 transition-colors z-50"
       on:click={handleReturn}
     >
       返回主畫面
@@ -62,15 +62,15 @@
 
       <!-- 頂部訊息顯示區域 -->
       {#if $messageState}
-        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 flex flex-col items-center w-[230px]">
+        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 flex flex-col items-center w-[130px]">
           <div class="relative w-full">
             <img 
               src="{base}/images/ui/bubble_460x200.png" 
               alt="Title Bubble"
               class="w-full"
             />
-            <div class="absolute inset-0 flex items-start justify-center pt-6">
-              <span class="text-white/90 text-sm px-4">
+            <div class="absolute inset-0 flex items-start justify-center pt-2.5">
+              <span class="text-white/90 text-xl px-4">
                 {$messageState}
               </span>
             </div>
@@ -87,7 +87,7 @@
             class="w-full"
           />
           <div class="absolute inset-0 flex items-center justify-center px-8">
-            <span class="text-white/90 text-sm">
+            <span class="text-white/90 text-xl">
               {$messageState}
             </span>
           </div>
@@ -115,7 +115,7 @@
               alt="Coin"
               class="w-8 h-8"
             />
-            <span class="text-white/70 leading-none pb-1">{$gameState.money}</span>
+            <span class="text-white/70 leading-none pb-1 text-xl">{$gameState.money}</span>
           </div>
 
           <!-- 下半部：體力和精神條 -->
@@ -136,7 +136,7 @@
                 ></div>
               </div>
               <!-- 體力數值 -->
-              <span class="text-white/70 text-sm whitespace-nowrap">
+              <span class="text-white/70 text-xl whitespace-nowrap">
                 {$gameState.health} / {$gameState.maxHealth}
               </span>
             </div>
@@ -156,7 +156,7 @@
                 ></div>
               </div>
               <!-- 精神數值 -->
-              <span class="text-white/70 text-sm whitespace-nowrap">
+              <span class="text-white/70 text-xl whitespace-nowrap">
                 {$gameState.spirit} / {$gameState.maxSpirit}
               </span>
             </div>
@@ -182,7 +182,7 @@
                       class="absolute inset-0 flex items-center justify-center hover:bg-white/10 transition-colors"
                       on:click={() => handleItemClick(item.id)}
                     >
-                      <span class="text-sm text-white/70">{item.name} ({item.quantity})</span>
+                      <span class="text-xl text-white/70">{item.name} ({item.quantity})</span>
                     </button>
                   </div>
                 {/each}
@@ -229,10 +229,10 @@
                     on:click={() => handleChoice(choice)}
                   >
                     {#if choice.cost}
-                      <span class="text-sm text-white/70">
+                      <span class="text-xl text-white/70">
                         {choice.text.split(' ').slice(0, -1).join(' ')}
                       </span>
-                      <span class="text-xs text-white/50 mt-1">
+                      <span class="text-xl text-white/50 mt-1">
                         {#if choice.cost.type === 'money'}
                           (錢幣 +{choice.cost.amount})
                         {:else}
@@ -240,7 +240,7 @@
                         {/if}
                       </span>
                     {:else}
-                      <span class="text-sm text-white/70">{choice.text}</span>
+                      <span class="text-xl text-white/70">{choice.text}</span>
                     {/if}
                   </button>
                 </div>

@@ -10,7 +10,7 @@ interface Cost {
 }
 
 // 定義選項的介面
-interface Choice {
+export interface Choice {
   text: string;                    // 選項文字
   nextScene?: string;              // 選擇後前往的場景
   cost?: Cost;                     // 選擇的代價或獲得
@@ -29,6 +29,10 @@ export interface Scene {
   choices: Choice[];
   onEnter?: (state: GameState) => void;
   onExit?: (state: GameState) => void;
+  autoChange?: {    // 新增自動切換場景設定
+    nextScene: string;
+    delay: number;  // 以毫秒為單位
+  };
 }
 
 // 定義道具相關場景類型
@@ -44,11 +48,28 @@ const scenes: Record<string, Scene | ItemScene> = {
     id: 'day1',
     title: '第一天',
     description: '',
-    image: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Day+1',
+    image: `${base}/images/scenes/day1/Day1.png`,
     dialogues: [],
     choices: [
       {
         text: '開始',
+        nextScene: 'room',
+      },
+    ],
+    autoChange: {
+      nextScene: 'day1-start',
+      delay: 5000  // 5秒後自動切換
+    }
+  },
+  'day1-start': {
+    id: 'day1-start',
+    title: '清晨',
+    description: '',
+    image: `${base}/images/scenes/day1/day1-start.png`,
+    dialogues: [],
+    choices: [
+      {
+        text: '繼續',
         nextScene: 'room',
       },
     ]
@@ -185,11 +206,29 @@ const initialSceneState: SceneState = {
 export const sceneState = writable<SceneState>(initialSceneState);
 
 // 創建一個衍生 store 來獲取當前場景
-export const currentScene = derived(sceneState, $state => {
-  const scene = scenes[$state.currentScene];
-  console.log('當前場景:', scene);
-  return scene;
-});
+export const currentScene = derived<typeof sceneState, Scene>(
+  sceneState, 
+  ($state, set) => {
+    const scene = scenes[$state.currentScene];
+    console.log('當前場景:', scene);
+
+    set(scene);  // 先設置場景值
+
+    // 處理自動切換場景
+    if (scene && 'autoChange' in scene && scene.autoChange) {
+      const { nextScene: autoNextScene, delay } = scene.autoChange;
+      const timer = setTimeout(() => {
+        changeScene(autoNextScene);
+      }, delay);
+
+      // 清理函數，當場景改變時取消計時器
+      return () => clearTimeout(timer);
+    }
+
+    return () => {};  // 返回空的清理函數
+  },
+  scenes.day1 // 提供初始值
+);
 
 // 場景控制函數
 export function getCurrentScene(): Scene {
@@ -200,7 +239,7 @@ export function changeScene(sceneId: string, params?: any) {
   const currentSceneId = get(sceneState).currentScene;
   console.log('切換場景:', sceneId, params);
   
-  let nextScene: Scene | ItemScene;
+  let nextScene: Scene | ItemScene | null = null;
   
   if (sceneId === 'item_get') {
     nextScene = createItemGetScene(params.itemId, currentSceneId);
@@ -218,7 +257,7 @@ export function changeScene(sceneId: string, params?: any) {
     nextScene = scenes[sceneId];
   }
 
-  if (nextScene) {
+  if (nextScene) {  // 確保 nextScene 不為 null
     console.log('新場景:', nextScene);
     // 更新場景定義
     scenes[sceneId] = nextScene;
@@ -239,10 +278,8 @@ export function nextDialogue() {
   }));
 }
 
-export { type Scene, type Choice }; 
-
 // 添加道具場景生成函數
-export function createItemGetScene(itemId: string, currentSceneId: string) {
+export function createItemGetScene(itemId: string, currentSceneId: string): Scene | ItemScene | null {
   const item = getItemById(itemId);
   if (!item) return null;
   
@@ -265,11 +302,11 @@ export function showMessage(message: string) {
   messageState.set(message);
   setTimeout(() => {
     messageState.set(null);
-  }, 2000); // 2秒後自動消失
+  }, 3000); // 從 2000 改為 3000，延長至 3 秒
 }
 
 // 修改 createItemUseScene 函數中的美工刀使用邏輯
-export function createItemUseScene(itemId: string, currentSceneId: string) {
+export function createItemUseScene(itemId: string, currentSceneId: string): Scene | ItemScene | null {
   const item = getItemById(itemId);
   if (!item) return null;
 

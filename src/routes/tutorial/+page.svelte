@@ -8,7 +8,8 @@
     `${base}/images/introductions/2.png`,
     `${base}/images/introductions/3.png`,
     `${base}/images/introductions/4.png`,
-    `${base}/images/introductions/5.png`
+    `${base}/images/introductions/5.png`,
+    `${base}/images/introductions/6.png`,
   ];
 
   let currentIndex = 0;

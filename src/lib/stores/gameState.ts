@@ -30,11 +30,11 @@ export interface GameState {
 // 將初始狀態定義為一個函數，每次調用時返回新的對象
 function getInitialState(): GameState {
   return {
-    health: 15,
-    maxHealth: 30,
-    spirit: 20,
-    maxSpirit: 30,
-    money: 1000,
+    health: 15,      // 初始體力 15
+    maxHealth: 20,   // 最大體力改為 20
+    spirit: 20,      // 初始精神 20
+    maxSpirit: 20,   // 最大精神改為 20
+    money: 0,
     items: [
       {
         id: 'cutter',
