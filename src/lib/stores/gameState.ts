@@ -25,10 +25,11 @@ export interface GameState {
   maxSpirit: number;
   money: number;
   items: Item[];
+  visitedScenes: string[];
 }
 
-// 將初始狀態定義為一個函數，每次調用時返回新的對象
-function getInitialState(): GameState {
+// 將 getInitialState 改為導出函數
+export function getInitialState(): GameState {
   return {
     health: 15,      // 初始體力 15
     maxHealth: 20,   // 最大體力改為 20
@@ -77,7 +78,8 @@ function getInitialState(): GameState {
         quantity: 3,
         usable: true
       }
-    ]
+    ],
+    visitedScenes: []
   };
 }
 
@@ -154,4 +156,33 @@ export function addMoney(amount: number) {
     ...state,
     money: state.money + amount
   }));
+}
+
+// 添加增加體力的函數
+export function addHealth(amount: number) {
+  gameState.update(state => ({
+    ...state,
+    health: Math.min(state.maxHealth, state.health + amount)  // 確保不超過最大值
+  }));
+}
+
+// 添加增加精神的函數
+export function addSpirit(amount: number) {
+  gameState.update(state => ({
+    ...state,
+    spirit: Math.min(state.maxSpirit, state.spirit + amount)  // 確保不超過最大值
+  }));
+}
+
+// 添加記錄訪問場景的函數
+export function addVisitedScene(sceneId: string) {
+  gameState.update(state => {
+    if (!state.visitedScenes.includes(sceneId)) {
+      return {
+        ...state,
+        visitedScenes: [...state.visitedScenes, sceneId]
+      };
+    }
+    return state;
+  });
 }

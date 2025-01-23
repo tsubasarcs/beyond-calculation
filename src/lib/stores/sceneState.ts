@@ -1,6 +1,6 @@
 import { writable, derived, get } from 'svelte/store';
 import type { GameState } from './gameState';
-import { gameState, getItemById, useItem, refillItem } from './gameState';
+import { gameState, getItemById, useItem, refillItem, addMoney, addVisitedScene, getInitialState } from './gameState';
 import { base } from '$app/paths';
 
 // 定義消耗/獲得的類型
@@ -53,7 +53,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     choices: [
       {
         text: '開始',
-        nextScene: 'room',
+        nextScene: 'sleep-1',
       },
     ],
     autoChange: {
@@ -70,48 +70,206 @@ const scenes: Record<string, Scene | ItemScene> = {
     choices: [
       {
         text: '繼續',
-        nextScene: 'room',
+        nextScene: 'sleep-1',
       },
-    ]
+    ],
+    autoChange: {
+      nextScene: 'sleep-1',
+      delay: 5000  // 5秒後自動切換
+    }
   },
-  room: {
-    id: 'room',
+  'sleep-1': {
+    id: 'sleep-1',
     title: '房間',
     description: '',
     image: `${base}/images/scenes/day1/sleep_01.png`,
     dialogues: [],
     choices: [
       {
-        text: '翻找床底 體力-1',
-        nextScene: 'day1',
+        text: '起床',
+        nextScene: 'room-1',
+      },
+      {
+        text: '繼續睡吧 體力+1',
+        nextScene: 'sleep-2',
         cost: {
           type: 'health',
           amount: 1
         }
-      },
+      }
+    ],
+  },
+  'sleep-2': {
+    id: 'sleep-2',
+    title: '房間',
+    description: '',
+    image: `${base}/images/scenes/day1/sleep_02.png`,
+    dialogues: [],
+    choices: [
       {
-        text: '看窗外 精神-1',
-        nextScene: 'day1',
+        text: '繼續睡吧?沒關係的。 體力+1',
+        nextScene: 'sleep-3',
         cost: {
-          type: 'spirit',
+          type: 'health',
           amount: 1
         }
-      },
+      }
+    ]
+  },
+  'sleep-3': {
+    id: 'sleep-3',
+    title: '房間',
+    description: '',
+    image: `${base}/images/scenes/day1/sleep_03.png`,
+    dialogues: [],
+    choices: [
       {
-        text: '撿到錢 錢+100',
-        nextScene: 'day1',
+        text: '???????? 體力+1',
+        nextScene: 'sleep-4',
         cost: {
-          type: 'money',
-          amount: 100
-        }
-      },
-      {
-        text: '撿起地上的美工刀刀片 精神-1',
-        nextScene: 'get_blade',  // 前往獲得刀片的場景
-        cost: {
-          type: 'spirit',
+          type: 'health',
           amount: 1
         }
+      }
+    ]
+  },
+  'sleep-4': {
+    id: 'sleep-4',
+    title: '房間',
+    description: '',
+    image: `${base}/images/scenes/day1/sleep_04.png`,
+    dialogues: [],
+    choices: [
+      {
+        text: '???????? 體力+1',
+        nextScene: 'sleep-dead',
+        cost: {
+          type: 'health',
+          amount: 1
+        }
+      }
+    ]
+  },
+  'sleep-dead': {
+    id: 'sleep-dead',
+    title: '房間',
+    description: '',
+    image: `${base}/images/scenes/day1/sleep_dead.png`,
+    dialogues: [],
+    choices: [
+      {
+        text: '醒來',
+        nextScene: 'sleep-1',
+        onSelect: () => {
+          const initialState = getInitialState();  // 獲取初始狀態
+          gameState.update(state => ({
+            ...state,
+            health: initialState.health,      // 使用初始體力值
+            maxHealth: initialState.maxHealth, // 使用初始最大體力值
+            spirit: initialState.spirit,       // 使用初始精神值
+            maxSpirit: initialState.maxSpirit  // 使用初始最大精神值
+          }));
+        }
+      }
+    ]
+  },
+  'room-1': {
+    id: 'room-1',
+    title: '房間',
+    description: '',
+    image: `${base}/images/scenes/day1/room_01.png`,
+    dialogues: ['還是要出門找東西填肚子…', '這個身體撐不住前要趕快回到房間，', '不論如何，必須得回來…'],
+    choices: [
+      {
+        text: '檢查窗外 體力-1',
+        nextScene: 'window-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      },
+      {
+        text: '檢查床底 體力-1',
+        nextScene: 'bed-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      },
+      {
+        text: '出門吧 體力-1',
+        nextScene: 'outdoor-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      },
+    ],
+  },
+  'window-1': {
+    id: 'window-1',
+    title: '窗外',
+    description: '',
+    image: `${base}/images/scenes/day1/window_01.png`,
+    dialogues: ['很好。今天還是好天氣'],
+    choices: [
+      {
+        text: '出門吧 體力-1',
+        nextScene: 'room-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      },
+      {
+        text: '檢查床底 體力-1',
+        nextScene: 'bed-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      }
+    ],
+  },
+  'bed-1': {
+    id: 'bed-1',
+    title: '床底',
+    description: '',
+    image: `${base}/images/scenes/day1/bed_01.png`,
+    dialogues: ['床底下有幾快冰冷的金屬，不知道是誰放在這了'],
+    choices: [
+      {
+        text: '出門吧 體力-1',
+        nextScene: 'room-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      },
+      {
+        text: '檢查窗外 體力-1',
+        nextScene: 'window-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      }
+    ],
+  },
+  'outdoor-1': {
+    id: 'outdoor-1',
+    title: '出門',
+    description: '',
+    image: `${base}/images/scenes/day1/outdoor_01.png`,
+    dialogues: [],
+    choices: [
+      {
+        text: '出門',
+        nextScene: 'outdoor-2'
+      },
+      {
+        text: '回到房間',
+        nextScene: 'room-1'
       }
     ],
   },
@@ -241,8 +399,26 @@ export function changeScene(sceneId: string, params?: any) {
   
   let nextScene: Scene | ItemScene | null = null;
   
+  // 特殊處理 bed-1 場景的首次進入
+  if (sceneId === 'bed-1' && !get(gameState).visitedScenes.includes('bed-1')) {
+    // 先記錄訪問 bed-1
+    addVisitedScene('bed-1');
+    // 先加上金錢
+    addMoney(5);
+    // 直接轉到獲得金錢的場景
+    changeScene('item_get', {
+      itemId: 'coin',
+      amount: 5,
+      description: '',
+      dialogues: ['你獲得了五枚硬幣'],
+      image: `${base}/images/get_items/day1/get_coin.png`,
+      returnScene: 'bed-1'  // 移除 onGet，因為已經在前面加過錢了
+    });
+    return;
+  }
+  
   if (sceneId === 'item_get') {
-    nextScene = createItemGetScene(params.itemId, currentSceneId);
+    nextScene = createItemGetScene(params.itemId, currentSceneId, params);
   } else if (sceneId === 'item_use') {
     nextScene = createItemUseScene(params.itemId, currentSceneId);
   } else if (sceneId === 'item_use_fail') {
@@ -257,10 +433,12 @@ export function changeScene(sceneId: string, params?: any) {
     nextScene = scenes[sceneId];
   }
 
-  if (nextScene) {  // 確保 nextScene 不為 null
+  if (nextScene) {
     console.log('新場景:', nextScene);
     // 更新場景定義
     scenes[sceneId] = nextScene;
+    // 記錄訪問過的場景
+    addVisitedScene(sceneId);
     // 更新當前場景狀態
     sceneState.update(state => ({
       ...state,
@@ -278,15 +456,44 @@ export function nextDialogue() {
   }));
 }
 
-// 添加道具場景生成函數
-export function createItemGetScene(itemId: string, currentSceneId: string): Scene | ItemScene | null {
+// 修改 createItemGetScene 函數
+export function createItemGetScene(
+  itemId: string, 
+  currentSceneId: string, 
+  params?: {
+    amount?: number;
+    description?: string;
+    dialogues?: string[];  // 添加對話參數
+    image?: string;
+    onGet?: () => void;
+    returnScene?: string;
+  }
+): Scene | ItemScene | null {
+  // 處理金錢獲得的特殊情況
+  if (itemId === 'coin') {
+    const newScene = { ...scenes.item_get } as ItemScene;
+    newScene.description = params?.description || `獲得了 ${params?.amount || 0} 個金幣`;
+    newScene.dialogues = params?.dialogues;  // 設置對話
+    newScene.image = params?.image || `${base}/images/ui/coin_160x160.png`;
+    newScene.itemId = itemId;
+    newScene.prevScene = currentSceneId;
+    newScene.choices = [
+      {
+        text: '返回',
+        nextScene: params?.returnScene || currentSceneId,
+        onSelect: params?.onGet
+      }
+    ];
+    return newScene;
+  }
+
+  // 一般道具獲得的邏輯保持不變
   const item = getItemById(itemId);
   if (!item) return null;
   
   const newScene = { ...scenes.item_get } as ItemScene;
-  
   newScene.description = `獲得了 ${item.name}`;
-  newScene.image = item.image;  // 使用道具的圖片
+  newScene.image = item.image;
   newScene.itemId = itemId;
   newScene.prevScene = currentSceneId;
   newScene.choices[0].nextScene = currentSceneId;
