@@ -4,12 +4,12 @@
 
   // 教學圖片陣列
   const introImages = [
-    `${base}/images/introductions/1.png`,
-    `${base}/images/introductions/2.png`,
-    `${base}/images/introductions/3.png`,
-    `${base}/images/introductions/4.png`,
-    `${base}/images/introductions/5.png`,
-    `${base}/images/introductions/6.png`,
+    `${base}/images/introductions/1.jpg`,
+    `${base}/images/introductions/2.jpg`,
+    `${base}/images/introductions/3.jpg`,
+    `${base}/images/introductions/4.jpg`,
+    `${base}/images/introductions/5.jpg`,
+    `${base}/images/introductions/6.jpg`,
   ];
 
   let currentIndex = 0;

@@ -131,7 +131,19 @@ export function consumeSpirit(amount: number) {
 
 // 修改重置函數
 export function resetGameState() {
-  gameState.set(getInitialState());
+  const initialState = getInitialState();
+  gameState.update(state => ({
+    ...initialState,
+    visitedScenes: []  // 確保清空訪問記錄
+  }));
+}
+
+// 添加開發用的清空訪問記錄函數
+export function clearVisitedScenes() {
+  gameState.update(state => ({
+    ...state,
+    visitedScenes: []
+  }));
 }
 
 // 添加 getItemById 函數

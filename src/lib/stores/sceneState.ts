@@ -48,7 +48,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     id: 'day1',
     title: '第一天',
     description: '',
-    image: `${base}/images/scenes/day1/Day1.png`,
+    image: `${base}/images/scenes/day1/Day1.jpg`,
     dialogues: [],
     choices: [
       {
@@ -65,7 +65,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     id: 'day1-start',
     title: '清晨',
     description: '',
-    image: `${base}/images/scenes/day1/day1-start.png`,
+    image: `${base}/images/scenes/day1/day1-start.jpg`,
     dialogues: [],
     choices: [
       {
@@ -82,7 +82,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     id: 'sleep-1',
     title: '房間',
     description: '',
-    image: `${base}/images/scenes/day1/sleep_01.png`,
+    image: `${base}/images/scenes/day1/sleep_01.jpg`,
     dialogues: [],
     choices: [
       {
@@ -103,7 +103,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     id: 'sleep-2',
     title: '房間',
     description: '',
-    image: `${base}/images/scenes/day1/sleep_02.png`,
+    image: `${base}/images/scenes/day1/sleep_02.jpg`,
     dialogues: [],
     choices: [
       {
@@ -120,7 +120,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     id: 'sleep-3',
     title: '房間',
     description: '',
-    image: `${base}/images/scenes/day1/sleep_03.png`,
+    image: `${base}/images/scenes/day1/sleep_03.jpg`,
     dialogues: [],
     choices: [
       {
@@ -137,7 +137,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     id: 'sleep-4',
     title: '房間',
     description: '',
-    image: `${base}/images/scenes/day1/sleep_04.png`,
+    image: `${base}/images/scenes/day1/sleep_04.jpg`,
     dialogues: [],
     choices: [
       {
@@ -154,7 +154,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     id: 'sleep-dead',
     title: '房間',
     description: '',
-    image: `${base}/images/scenes/day1/sleep_dead.png`,
+    image: `${base}/images/scenes/day1/sleep_dead.jpg`,
     dialogues: [],
     choices: [
       {
@@ -177,7 +177,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     id: 'room-1',
     title: '房間',
     description: '',
-    image: `${base}/images/scenes/day1/room_01.png`,
+    image: `${base}/images/scenes/day1/room_01.jpg`,
     dialogues: ['還是要出門找東西填肚子…', '這個身體撐不住前要趕快回到房間，', '不論如何，必須得回來…'],
     choices: [
       {
@@ -210,11 +210,11 @@ const scenes: Record<string, Scene | ItemScene> = {
     id: 'window-1',
     title: '窗外',
     description: '',
-    image: `${base}/images/scenes/day1/window_01.png`,
+    image: `${base}/images/scenes/day1/window_01.jpg`,
     dialogues: ['很好。今天還是好天氣'],
     choices: [
       {
-        text: '出門吧 體力-1',
+        text: '返回房間 體力-1',
         nextScene: 'room-1',
         cost: {
           type: 'health',
@@ -235,7 +235,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     id: 'bed-1',
     title: '床底',
     description: '',
-    image: `${base}/images/scenes/day1/bed_01.png`,
+    image: `${base}/images/scenes/day1/bed_01.jpg`,
     dialogues: ['床底下有幾快冰冷的金屬，不知道是誰放在這了'],
     choices: [
       {
@@ -253,6 +253,26 @@ const scenes: Record<string, Scene | ItemScene> = {
           type: 'health',
           amount: -1
         }
+      },
+      {
+        text: '探索床底 體力-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        },
+        condition: (state: GameState) => !state.visitedScenes.includes('bed-1'),
+        onSelect: () => {
+          addVisitedScene('bed-1');
+          addMoney(5);
+          changeScene('item_get', {
+            itemId: 'coin',
+            amount: 5,
+            description: '',
+            dialogues: ['你獲得了五枚硬幣'],
+            image: `${base}/images/get_items/day1/get_coin.jpg`,
+            returnScene: 'bed-1'
+          });
+        }
       }
     ],
   },
@@ -260,7 +280,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     id: 'outdoor-1',
     title: '出門',
     description: '',
-    image: `${base}/images/scenes/day1/outdoor_01.png`,
+    image: `${base}/images/scenes/day1/outdoor_01.jpg`,
     dialogues: [],
     choices: [
       {
@@ -399,24 +419,6 @@ export function changeScene(sceneId: string, params?: any) {
   
   let nextScene: Scene | ItemScene | null = null;
   
-  // 特殊處理 bed-1 場景的首次進入
-  if (sceneId === 'bed-1' && !get(gameState).visitedScenes.includes('bed-1')) {
-    // 先記錄訪問 bed-1
-    addVisitedScene('bed-1');
-    // 先加上金錢
-    addMoney(5);
-    // 直接轉到獲得金錢的場景
-    changeScene('item_get', {
-      itemId: 'coin',
-      amount: 5,
-      description: '',
-      dialogues: ['你獲得了五枚硬幣'],
-      image: `${base}/images/get_items/day1/get_coin.png`,
-      returnScene: 'bed-1'  // 移除 onGet，因為已經在前面加過錢了
-    });
-    return;
-  }
-  
   if (sceneId === 'item_get') {
     nextScene = createItemGetScene(params.itemId, currentSceneId, params);
   } else if (sceneId === 'item_use') {
@@ -437,8 +439,6 @@ export function changeScene(sceneId: string, params?: any) {
     console.log('新場景:', nextScene);
     // 更新場景定義
     scenes[sceneId] = nextScene;
-    // 記錄訪問過的場景
-    addVisitedScene(sceneId);
     // 更新當前場景狀態
     sceneState.update(state => ({
       ...state,

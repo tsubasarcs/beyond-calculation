@@ -9,7 +9,8 @@
     addMoney, 
     resetGameState,
     addHealth,
-    addSpirit
+    addSpirit,
+    clearVisitedScenes
   } from '$lib/stores/gameState';
   import type { Scene, ItemScene, Choice } from '$lib/stores/sceneState';
   import { currentScene, changeScene, messageState, resetSceneState } from '$lib/stores/sceneState';
@@ -27,10 +28,8 @@
   }
 
   function handleChoice(choice: Choice) {
-    if (choice.onSelect) {
-      choice.onSelect();
-    }
-
+    choice.onSelect?.();
+    
     if (choice.cost) {
       if (choice.cost.type === 'health') {
         if (choice.cost.amount >= 0) {
@@ -106,6 +105,16 @@
     >
       返回主畫面
     </button>
+
+    <!-- 只在開發環境顯示的測試按鈕 -->
+    {#if import.meta.env.DEV}
+      <button 
+        class="absolute top-4 right-4 text-white/70 text-sm border border-white/30 bg-black/50 px-3 py-1.5 rounded hover:bg-white/10 transition-colors z-50"
+        on:click={clearVisitedScenes}
+      >
+        重置場景記錄
+      </button>
+    {/if}
 
     <!-- 主要內容區域 -->
     <div class="flex-1 relative">
@@ -293,7 +302,7 @@
           <div class="w-2/3 h-full">
             <!-- 選項欄 -->
             <div class="grid grid-rows-4 h-full">
-              {#each $currentScene.choices as choice}
+              {#each $currentScene.choices.filter(choice => !choice.condition || choice.condition($gameState)) as choice}
                 <div class="relative">
                   <!-- 選項背景圖 -->
                   <img 
@@ -323,7 +332,7 @@
                   </button>
                 </div>
               {/each}
-              {#each Array(4 - $currentScene.choices.length) as _}
+              {#each Array(4 - $currentScene.choices.filter(choice => !choice.condition || choice.condition($gameState)).length) as _}
                 <!-- 空選項格子 -->
                 <div class="relative">
                   <img 
