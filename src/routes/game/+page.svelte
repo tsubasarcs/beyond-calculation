@@ -383,7 +383,7 @@
                   />
                   <!-- 選項按鈕 -->
                   <button 
-                    class="absolute inset-0 flex flex-col items-center justify-center hover:bg-white/10 transition-colors px-4"
+                    class="absolute inset-0 flex flex-col items-center justify-center hover:bg-white/10 transition-colors px-4 whitespace-pre-line"
                     on:click={() => handleChoice(choice)}
                   >
                     {#if choice.cost}

@@ -884,13 +884,13 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
   if (item.id === 'right-hand') {
     newScene.choices = [
       {
-        text: '吃掉 體力+3,精神-3',
+        text: '吃掉\n(體力+3, 精神-3)',  // 使用 \n 來換行
         nextScene: currentSceneId,
         onSelect: () => {
           useItem(itemId);  // 使用道具會移除它
           addHealth(3);     // 增加體力
           consumeSpirit(3); // 減少精神
-          showMessage('吃掉了...體力+3，精神-3');
+          showMessage('吃掉了...');
         }
       },
       {
