@@ -1011,14 +1011,16 @@ export function createAbandonItemScene(currentSceneId: string): Scene | ItemScen
   const pendingItem = state.pendingItem;
   
   newScene.prevScene = currentSceneId;
-  newScene.itemId = pendingItem?.itemId || '';  // 確保 itemId 有值
+  newScene.itemId = pendingItem?.itemId || '';
   
   // 如果沒有 pendingItem，直接返回原始場景
   if (!pendingItem) {
     newScene.choices = [
       {
         text: '返回',
-        nextScene: currentSceneId
+        onSelect: () => {
+          changeScene(currentSceneId);
+        }
       }
     ];
     return newScene;
@@ -1027,14 +1029,17 @@ export function createAbandonItemScene(currentSceneId: string): Scene | ItemScen
   // 設置選項
   newScene.choices = [
     {
-      text: '返回',  // 不設置 nextScene，改用 onSelect 完全控制場景切換
+      text: '返回',
       onSelect: () => {
-        if (pendingItem) {
-          changeScene('item_get', {
-            itemId: pendingItem.itemId,
-            ...pendingItem
-          });
-        }
+        // 清除 pendingItem 並返回獲得道具場景
+        gameState.update(state => ({
+          ...state,
+          pendingItem: null
+        }));
+        changeScene('item_get', {
+          itemId: pendingItem.itemId,
+          ...pendingItem
+        });
       }
     }
   ];
