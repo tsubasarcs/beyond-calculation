@@ -457,23 +457,24 @@ const scenes: Record<string, Scene | ItemScene> = {
           if (!state.visitedScenes.includes('rummage-trash-can-1')) {
             addVisitedScene('rummage-trash-can-1');
             changeScene('item_get', {
-              itemId: 'blackiron-key',
+              itemId: 'blackiron-key-1',
               name: '黑鐵鑰匙',
               amount: 1,
               description: '',
               dialogues: ['一把有點畸形的鑰匙，不知道能用在哪'],
-              image: `${base}/images/get_items/day1/blackiron_key.jpg`,
+              image: `${base}/images/get_items/day1/blackiron_key_01.jpg`,
               returnScene: 'trash-can-1',
               successMessage: '黑鐵鑰匙+1',  // 自定義獲得道具時的訊息
               onGet: () => {
                 addNewItem({
-                  itemId: 'blackiron-key',
+                  itemId: 'blackiron-key-1',
                   name: '黑鐵鑰匙',
                   type: 'normal',
                   description: '灰色金屬鑰匙\n有點鏽蝕了，不知道用在哪?',
-                  image: `${base}/images/get_items/day1/blackiron_key.jpg`,
+                  image: `${base}/images/items/day1/blackiron_key_01.jpg`,
+                  usable: false,
                 });
-                refillItem('blackiron-key', 1);
+                refillItem('blackiron-key-1', 1);
               }
             });
           } else {
@@ -506,7 +507,7 @@ const scenes: Record<string, Scene | ItemScene> = {
                   name: '右手',
                   type: 'normal',
                   description: '一隻看起來是人類女性的右手掌，看起來已經腐爛了\n但如果情況艱難...這還是蛋白質',
-                  image: `${base}/images/get_items/day1/right_hand.jpg`,
+                  image: `${base}/images/items/day1/right_hand.jpg`,
                 });
                 refillItem('right-hand', 1);
               }
@@ -652,7 +653,8 @@ const scenes: Record<string, Scene | ItemScene> = {
                 name: '螺絲起子',
                 type: 'tool',
                 description: '前端被削尖的螺絲起子...\n削尖這個工具的人挺有創意的。',
-                image: `${base}/images/buy_items/day1/screwdriver.jpg`
+                image: `${base}/images/items/day1/screwdriver.jpg`,
+                usable: false,
               });
               refillItem('screwdriver', 1);
             }
@@ -678,7 +680,7 @@ const scenes: Record<string, Scene | ItemScene> = {
                 name: '吐司',
                 type: 'normal',
                 description: '買吐司送蘑菇...\n看起來噁心又物超所值。',
-                image: `${base}/images/buy_items/day1/toast.jpg`
+                image: `${base}/images/items/day1/toast.jpg`
               });
               refillItem('toast', 1);
             }
@@ -704,7 +706,8 @@ const scenes: Record<string, Scene | ItemScene> = {
                 name: '玩偶一號',
                 type: 'normal',
                 description: '詭異的玩偶，\n沒多好看，不知道有誰會想要這個東西?',
-                image: `${base}/images/buy_items/day1/doll.jpg`
+                image: `${base}/images/items/day1/doll_01.jpg`,
+                usable: false,
               });
               refillItem('doll-1', 1);
             }
@@ -1101,6 +1104,17 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
     newScene.dialogues = [item.description];
   }
 
+  // 如果道具不可使用，只顯示返回選項
+  if (!item.usable) {
+    newScene.choices = [
+      {
+        text: '返回',
+        nextScene: currentSceneId
+      }
+    ];
+    return newScene;
+  }
+
   // 根據道具類型和ID設置不同的選項
   if (item.id === 'right-hand') {
     newScene.choices = [
@@ -1201,11 +1215,14 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
       ];
     }
   } else {
+    // 預設選項
     newScene.choices = [
       {
         text: '使用',
         nextScene: currentSceneId,
-        onSelect: () => showMessage('無效果')
+        onSelect: () => {
+          useItem(itemId);
+        }
       },
       {
         text: '返回',

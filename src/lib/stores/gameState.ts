@@ -1,4 +1,5 @@
 import { writable, derived, get } from 'svelte/store';
+import { base } from '$app/paths';
 
 interface Item {
   id: string;
@@ -6,7 +7,7 @@ interface Item {
   type: 'recovery' | 'normal' | 'weapon' | 'coin' | 'tool';
   description: string;
   image: string;
-  icon: string;
+  icon?: string;
   iconEmpty?: string;
   imageEmpty?: string;
   effect?: {
@@ -42,41 +43,10 @@ export function getInitialState(): GameState {
         id: 'cutter',
         name: '美工刀',
         type: 'normal',
-        description: '一把普通的美工刀，刀片似乎還很新。',
-        image: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Cutter',
-        icon: 'https://placehold.co/30x30/000000/FFFFFF/png?text=Cut',
-        imageEmpty: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Empty+Cutter',
-        iconEmpty: 'https://placehold.co/30x30/000000/FFFFFF/png?text=Empty',
+        description: '美工刀，用這個比用牙齒或指甲好多了。',
+        image: `${base}/images/items/day1/cutter.jpg`,
         quantity: 3,
         permanent: true,
-        usable: true
-      },
-      {
-        id: 'health-potion',
-        name: '體力全滿藥水',
-        type: 'recovery',
-        description: '回復全部體力值',
-        image: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Health+Potion',
-        icon: 'https://placehold.co/30x30/000000/FFFFFF/png?text=HP',
-        effect: {
-          type: 'health',
-          amount: 30
-        },
-        quantity: 3,
-        usable: true
-      },
-      {
-        id: 'spirit-potion',
-        name: '精神全滿藥水',
-        type: 'recovery',
-        description: '回復全部精神值',
-        image: 'https://placehold.co/600x400/000000/FFFFFF/png?text=Spirit+Potion',
-        icon: 'https://placehold.co/30x30/000000/FFFFFF/png?text=SP',
-        effect: {
-          type: 'spirit',
-          amount: 30
-        },
-        quantity: 3,
         usable: true
       }
     ],
@@ -91,7 +61,7 @@ export const gameState = writable<GameState>(getInitialState());
 export function useItem(itemId: string) {
   gameState.update(state => {
     const item = state.items.find(i => i.id === itemId);
-    if (!item || item.quantity <= 0) return state;
+    if (!item || item.quantity <= 0 || !item.usable) return state; // 檢查是否可用
 
     let newState = { ...state };
     
@@ -107,7 +77,16 @@ export function useItem(itemId: string) {
     // 減少道具數量
     item.quantity--;
     
-    // 只有非永久道具且數量為 0 時才移除
+    // 如果美工刀數量為 0，轉換為 "斷掉美工刀"
+    if (item.id === 'cutter' && item.quantity <= 0) {
+      item.id = 'snapped-cutter';
+      item.name = '斷掉美工刀';
+      item.description = '沒電的手電筒。倒楣。\n去些地方很需要這東西...這副身體的功能太弱了';
+      item.image = `${base}/images/items/day1/snapped_cutter.jpg`;
+      item.usable = false;
+    }
+
+    // 移除非永久道具
     if (item.quantity <= 0 && !item.permanent) {
       newState.items = state.items.filter(i => i.id !== itemId);
     }
@@ -152,11 +131,20 @@ export function getItemById(itemId: string): Item | undefined {
   return get(gameState).items.find(item => item.id === itemId);
 }
 
-// 添加補充道具數量的函數
+// 補充道具數量的函數
 export function refillItem(itemId: string, amount: number) {
   gameState.update(state => {
-    const item = state.items.find(i => i.id === itemId);
+    const item = state.items.find(i => i.id === itemId || (i.id === 'snapped-cutter' && itemId === 'cutter'));
     if (!item) return state;
+
+    // 如果是補充美工刀片，恢復為正常的美工刀
+    if (item.id === 'snapped-cutter' && itemId === 'cutter') {
+      item.id = 'cutter';
+      item.name = '美工刀';
+      item.description = '美工刀，用這個比用牙齒或指甲好多了。';
+      item.image = `${base}/images/items/day1/cutter.jpg`;
+      item.usable = true;
+    }
 
     item.quantity += amount;
     return state;
@@ -208,8 +196,9 @@ export function addNewItem(params: {
   description?: string;
   image?: string;
   icon?: string;
+  usable?: boolean;
 }) {
-  const { itemId, name, type = 'normal', description = '', image, icon } = params;
+  const { itemId, name, type = 'normal', description = '', image, icon, usable = true } = params;
 
   gameState.update(state => {
     // 檢查道具是否已存在
@@ -227,7 +216,7 @@ export function addNewItem(params: {
       image: image || ``,
       icon: icon || ``,
       quantity: 0,  // 初始數量為 0，之後用 refillItem 增加
-      usable: true  // 預設可使用
+      usable: usable  // 預設可使用
     };
 
     return {
