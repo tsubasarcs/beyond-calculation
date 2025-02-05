@@ -944,7 +944,7 @@ export function createItemGetScene(itemId: string, currentSceneId: string, param
   const needsNewItem = itemParams?.onGet && itemParams?.addNewItem;
 
   // 如果是補充品或已有的道具，直接提供獲得選項
-  if (isRefill || (existingItem && !needsNewItem)) {
+  if (isRefill || (existingItem && !needsNewItem) || pendingItem) {
     newScene.choices = [
       {
         text: '獲得道具',
