@@ -10,7 +10,8 @@ import {
   getInitialState, 
   addNewItem,
   addHealth,     // 添加這個
-  consumeSpirit  // 添加這個
+  consumeSpirit,  // 添加這個
+  addSpirit      // 添加這個
 } from './gameState';
 import { base } from '$app/paths';
 
@@ -525,6 +526,199 @@ const scenes: Record<string, Scene | ItemScene> = {
       }
     ]
   },
+  'construction-1': {
+    id: 'construction-1',
+    showTitle: true,
+    title: '工地',
+    description: '',
+    image: `${base}/images/scenes/day1/construction_01.jpg`,
+    dialogues: [],
+    choices: [
+      {
+        text: '穿過工地 體力-1',
+        nextScene: 'sewer-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      },
+      {
+        text: '繼續直走 體力-1',
+        nextScene: 'vending-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      },
+      {
+        text: '向右側小路 體力-1',
+        nextScene: 'bodega-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      },
+      {
+        text: '原路折返 體力-1',
+        nextScene: 'street-2',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      }
+    ]
+  },
+  'sewer-1': {
+    id: 'sewer-1',
+    showTitle: true,
+    title: '下水道',
+    description: '',
+    image: `${base}/images/scenes/day1/sewer_01.jpg`,
+    dialogues: ['下水道入口，但鐵欄杆都被焊死', '據說直到今天還有很多人被困在裡面...'],
+    choices: [
+      {
+        text: '原路折返 體力-1',
+        nextScene: 'construction-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      }
+    ]
+  },
+  'bodega-1': {
+    id: 'bodega-1',
+    showTitle: true,
+    title: '雜貨舖',
+    description: '',
+    image: `${base}/images/scenes/day1/bodega_01.jpg`,
+    dialogues: ['沒開門，下次再來吧'],
+    choices: [
+      {
+        text: '折返 體力-1',
+        nextScene: 'construction-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      }
+    ]
+  },
+  'vending-1': {
+    id: 'vending-1',
+    showTitle: true,
+    title: '販賣機',
+    description: '',
+    image: `${base}/images/scenes/day1/vending_01.jpg`,
+    dialogues: ['原來這裡有販賣機?希望有賣好東西...'],
+    choices: [
+      {
+        text: '檢視商品',
+        nextScene: 'vending-2'
+      },
+      {
+        text: '返回工地 體力-1',
+        nextScene: 'construction-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      }
+    ]
+  },
+  'vending-2': {
+    id: 'vending-2',
+    title: '販賣機',
+    description: '',
+    image: `${base}/images/scenes/day1/vending_02.jpg`,
+    dialogues: ['有好多商品，不知道該買什麼...'],
+    choices: [
+      {
+        text: '購買螺絲起子 硬幣-2',
+        onSelect: () => {
+          changeScene('item_buy', {
+            itemId: 'screwdriver',
+            name: '螺絲起子',
+            type: 'tool',
+            cost: 2,
+            description: '前端被削尖的螺絲起子，應該不只能用來鎖螺絲?',
+            image: `${base}/images/buy_items/day1/screwdriver.jpg`,
+            getImage: `${base}/images/get_items/day1/screwdriver.jpg`,
+            returnScene: 'vending-2',
+            addNewItem: true,
+            onGet: () => {
+              addNewItem({
+                itemId: 'screwdriver',
+                name: '螺絲起子',
+                type: 'tool',
+                description: '前端被削尖的螺絲起子...\n削尖這個工具的人挺有創意的。',
+                image: `${base}/images/buy_items/day1/screwdriver.jpg`
+              });
+              refillItem('screwdriver', 1);
+            }
+          });
+        }
+      },
+      {
+        text: '購買吐司 硬幣-2',
+        onSelect: () => {
+          changeScene('item_buy', {
+            itemId: 'toast',
+            name: '吐司',
+            type: 'normal',
+            cost: 2,
+            description: '雖然長了蘑菇...但這樣算是買了兩種食物?',
+            image: `${base}/images/buy_items/day1/toast.jpg`,
+            getImage: `${base}/images/get_items/day1/toast.jpg`,
+            returnScene: 'vending-2',
+            addNewItem: true,
+            onGet: () => {
+              addNewItem({
+                itemId: 'toast',
+                name: '吐司',
+                type: 'normal',
+                description: '買吐司送蘑菇...\n看起來噁心又物超所值。',
+                image: `${base}/images/buy_items/day1/toast.jpg`
+              });
+              refillItem('toast', 1);
+            }
+          });
+        }
+      },
+      {
+        text: '購買玩偶 硬幣-1',
+        onSelect: () => {
+          changeScene('item_buy', {
+            itemId: 'doll-1',
+            name: '玩偶',
+            type: 'normal',
+            cost: 1,
+            description: '一隻莫名眼熟的卡通玩偶，不知有甚麼用。',
+            image: `${base}/images/buy_items/day1/doll_01.jpg`,
+            getImage: `${base}/images/get_items/day1/doll_01.jpg`,
+            returnScene: 'vending-2',
+            addNewItem: true,
+            onGet: () => {
+              addNewItem({
+                itemId: 'doll-1',
+                name: '玩偶一號',
+                type: 'normal',
+                description: '詭異的玩偶，\n沒多好看，不知道有誰會想要這個東西?',
+                image: `${base}/images/buy_items/day1/doll.jpg`
+              });
+              refillItem('doll-1', 1);
+            }
+          });
+        }
+      },
+      {
+        text: '返回',
+        nextScene: 'vending-1'
+      }
+    ]
+  },
+  
+  
   // ... 可以繼續添加更多場景
 
   // 道具獲得場景模板
@@ -616,6 +810,15 @@ const scenes: Record<string, Scene | ItemScene> = {
       }
     ]
   },
+
+  item_buy: {
+    id: 'item_buy',
+    type: 'item',
+    title: '購買道具',
+    description: '',
+    image: '',
+    choices: []
+  },
 };
 
 // 修改場景狀態管理
@@ -668,7 +871,9 @@ export function changeScene(sceneId: string, params?: any) {
   
   let nextScene: Scene | ItemScene | null = null;
   
-  if (sceneId === 'item_get') {
+  if (sceneId === 'item_buy') {
+    nextScene = createItemBuyScene(params.itemId, currentSceneId, params);
+  } else if (sceneId === 'item_get') {
     nextScene = createItemGetScene(params.itemId, currentSceneId, params);
   } else if (sceneId === 'abandon_item') {
     nextScene = createAbandonItemScene(currentSceneId);
@@ -723,11 +928,12 @@ export function createItemGetScene(itemId: string, currentSceneId: string, param
   newScene.prevScene = currentSceneId;
   newScene.itemId = itemParams?.itemId || itemId;
 
-  // 設置其他場景資訊
+  // 設置其他場景資訊，優先使用 getImage
   if (itemParams) {
     if (itemParams.description) newScene.description = itemParams.description;
     if (itemParams.dialogues) newScene.dialogues = itemParams.dialogues;
-    if (itemParams.image) newScene.image = itemParams.image;
+    // 優先使用 getImage，如果沒有才使用 image
+    newScene.image = itemParams.getImage || itemParams.image;
   }
 
   // 檢查是否為補充品（例如美工刀片）
@@ -807,11 +1013,21 @@ export function createAbandonItemScene(currentSceneId: string): Scene | ItemScen
   newScene.prevScene = currentSceneId;
   newScene.itemId = pendingItem?.itemId || '';  // 確保 itemId 有值
   
+  // 如果沒有 pendingItem，直接返回原始場景
+  if (!pendingItem) {
+    newScene.choices = [
+      {
+        text: '返回',
+        nextScene: currentSceneId
+      }
+    ];
+    return newScene;
+  }
+  
   // 設置選項
   newScene.choices = [
     {
-      text: '返回',
-      // 不設置 nextScene，改用 onSelect 完全控制場景切換
+      text: '返回',  // 不設置 nextScene，改用 onSelect 完全控制場景切換
       onSelect: () => {
         if (pendingItem) {
           changeScene('item_get', {
@@ -905,6 +1121,37 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
         nextScene: currentSceneId
       }
     ];
+  } else if (item.id === 'screwdriver') {
+    newScene.choices = [
+      {
+        text: '返回',
+        nextScene: currentSceneId
+      }
+    ];
+  } else if (item.id === 'toast') {
+    newScene.choices = [
+      {
+        text: '吃掉\n(體力+5, 精神+3)',
+        nextScene: currentSceneId,
+        onSelect: () => {
+          useItem(itemId);    // 使用道具會移除它
+          addHealth(5);       // 增加體力
+          addSpirit(3);       // 增加精神
+          showMessage('吃掉了...');
+        }
+      },
+      {
+        text: '返回',
+        nextScene: currentSceneId
+      }
+    ];
+  } else if (item.id === 'doll-1') {
+    newScene.choices = [
+      {
+        text: '返回',
+        nextScene: currentSceneId
+      }
+    ];
   } else if (item.type === 'recovery') {
     newScene.choices = [
       {
@@ -968,4 +1215,123 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
 // 添加重置場景狀態的函數
 export function resetSceneState() {
   sceneState.set(initialSceneState);
+}
+
+// 修改 createItemBuyScene 函數
+export function createItemBuyScene(itemId: string, currentSceneId: string, params?: any): Scene | ItemScene {
+  const state = get(gameState);
+  const newScene = { ...scenes.item_buy } as ItemScene;
+  
+  // 設置基本場景資訊
+  newScene.id = 'item_buy';
+  newScene.type = 'item';
+  newScene.title = '購買道具';
+  newScene.prevScene = currentSceneId;
+  newScene.itemId = itemId;
+
+  // 設置其他場景資訊
+  if (params) {
+    if (params.description) {
+      newScene.description = params.description;
+      // 將 description 設置為 dialogues
+      newScene.dialogues = [params.description];
+    }
+    if (params.image) newScene.image = params.image;
+  }
+
+  // 檢查金錢是否足夠
+  const cost = params?.cost || 0;
+  if (state.money < cost) {
+    newScene.choices = [
+      {
+        text: '金錢不足',
+        nextScene: params?.returnScene || currentSceneId,
+        onSelect: () => showMessage('沒有足夠的硬幣')
+      }
+    ];
+    return newScene;
+  }
+
+  // 檢查是否為新道具且道具欄已滿
+  const existingItem = state.items.find(item => item.id === itemId);
+  const isNewItem = params?.addNewItem && !existingItem;
+  
+  if (isNewItem && state.items.length >= 4) {
+    newScene.choices = [
+      {
+        text: '道具欄已滿，需要先放棄道具',
+        nextScene: 'abandon_item',
+        onSelect: () => {
+          // 設置 pendingItem，包含 dialogues
+          gameState.update(state => ({
+            ...state,
+            pendingItem: {
+              itemId: params.itemId,
+              name: params.name,
+              type: params.type,
+              description: params.description,
+              dialogues: [params.description], // 添加 dialogues
+              image: params.getImage,
+              getImage: params.getImage,
+              returnScene: params.returnScene,
+              successMessage: `購買了${params.name}`,
+              onGet: () => {
+                gameState.update(state => ({
+                  ...state,
+                  money: state.money - cost
+                }));
+                if (params.onGet) {
+                  params.onGet();
+                }
+              },
+              addNewItem: params.addNewItem,
+              cost: cost
+            }
+          }));
+        }
+      },
+      {
+        text: '返回',
+        nextScene: params?.returnScene || currentSceneId
+      }
+    ];
+    return newScene;
+  }
+
+  // 如果道具欄未滿或不是新道具，則提供購買選項
+  newScene.choices = [
+    {
+      text: `確認購買 硬幣-${cost}`,
+      onSelect: () => {
+        gameState.update(state => ({
+          ...state,
+          money: state.money - cost,
+          pendingItem: {
+            itemId: params.itemId,
+            name: params.name,
+            type: params.type,
+            description: params.description,
+            dialogues: [params.description], // 添加 dialogues
+            image: params.getImage,
+            getImage: params.getImage,
+            returnScene: params.returnScene,
+            successMessage: `購買了${params.name}`,
+            onGet: params.onGet,
+            addNewItem: params.addNewItem
+          }
+        }));
+        
+        changeScene('item_get', {
+          itemId: params.itemId,
+          dialogues: [params.description] // 這裡也傳遞 dialogues
+        });
+      }
+    },
+    {
+      text: '返回',
+      nextScene: params?.returnScene || currentSceneId
+    }
+  ];
+
+  return newScene;
 } 
