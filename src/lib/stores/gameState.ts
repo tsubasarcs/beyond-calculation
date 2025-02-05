@@ -3,7 +3,7 @@ import { writable, derived, get } from 'svelte/store';
 interface Item {
   id: string;
   name: string;
-  type: 'recovery' | 'normal' | 'weapon' | 'coin';
+  type: 'recovery' | 'normal' | 'weapon' | 'coin' | 'tool';
   description: string;
   image: string;
   icon: string;
@@ -26,6 +26,7 @@ export interface GameState {
   money: number;
   items: Item[];
   visitedScenes: string[];
+  pendingItem?: any;  // 添加 pendingItem 屬性，用於暫存待獲得的道具資訊
 }
 
 // 將 getInitialState 改為導出函數
@@ -196,5 +197,42 @@ export function addVisitedScene(sceneId: string) {
       };
     }
     return state;
+  });
+}
+
+// 修改獲得新道具的函數
+export function addNewItem(params: {
+  itemId: string;
+  name: string;
+  type?: 'recovery' | 'normal' | 'weapon' | 'coin' | 'tool';
+  description?: string;
+  image?: string;
+  icon?: string;
+}) {
+  const { itemId, name, type = 'normal', description = '', image, icon } = params;
+
+  gameState.update(state => {
+    // 檢查道具是否已存在
+    const existingItem = state.items.find(item => item.id === itemId);
+    if (existingItem) {
+      return state; // 如果道具已存在，不做任何改變
+    }
+
+    // 添加新道具
+    const newItem: Item = {
+      id: itemId,
+      name: name,
+      type: type,
+      description: description,
+      image: image || ``,
+      icon: icon || ``,
+      quantity: 0,  // 初始數量為 0，之後用 refillItem 增加
+      usable: true  // 預設可使用
+    };
+
+    return {
+      ...state,
+      items: [...state.items, newItem]
+    };
   });
 }

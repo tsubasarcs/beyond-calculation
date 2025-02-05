@@ -13,9 +13,20 @@
     clearVisitedScenes
   } from '$lib/stores/gameState';
   import type { Scene, ItemScene, Choice } from '$lib/stores/sceneState';
-  import { currentScene, changeScene, messageState, resetSceneState } from '$lib/stores/sceneState';
-  import { fly } from 'svelte/transition';
+  import { 
+    currentScene, 
+    changeScene, 
+    messageState, 
+    resetSceneState,
+    showMessage
+  } from '$lib/stores/sceneState';
+  import { fly, fade } from 'svelte/transition';
   import { onDestroy } from 'svelte';
+  import { get } from 'svelte/store';
+
+  // 將 store 訂閱移到頂層
+  $: currentSceneValue = $currentScene;
+  $: gameStateValue = $gameState;
 
   function isItemScene(scene: Scene | ItemScene): scene is ItemScene {
     return 'type' in scene && scene.type === 'item';
@@ -54,12 +65,41 @@
   }
 
   function handleItemClick(itemId: string) {
-    changeScene('item_use', { itemId });
+    // 使用從頂層訂閱的值
+    if (currentSceneValue.id === 'abandon_item') {
+      const state = get(gameState);
+      const pendingItem = state.pendingItem;
+      
+      // 移除選擇的道具
+      gameState.update(state => ({
+        ...state,
+        items: state.items.filter(i => i.id !== itemId)
+      }));
+
+      // 返回 item_get 場景
+      if (pendingItem) {
+        changeScene('item_get', {
+          ...pendingItem,  // 傳遞完整的 pendingItem 資訊
+          itemId: pendingItem.itemId,  // 確保 itemId 存在
+          returnScene: currentSceneValue.prevScene
+        });
+      }
+      return;
+    }
+
+    // 原有的道具使用邏輯
+    if (!isItemScene(currentSceneValue)) {
+      changeScene('item_use', { itemId });
+    }
   }
 
   // 控制對話框顯示的狀態
   let showDialogues = false;
   let dialogueTimer: number | null = null;
+
+  // 控制頂部訊息顯示的狀態
+  let showTitle = false;
+  let titleTimer: number | null = null;
 
   // 監聽場景變化和對話內容
   $: {
@@ -85,6 +125,25 @@
         dialogueTimer = null;
       }
     }
+
+    const shouldShowTitle = $messageState.top || ($currentScene.showTitle && $currentScene.title);
+    
+    // 當需要顯示標題時
+    if (shouldShowTitle) {
+      if (titleTimer) {
+        clearTimeout(titleTimer);
+      }
+      showTitle = true;
+      titleTimer = window.setTimeout(() => {
+        showTitle = false;
+      }, 3000);
+    } else {
+      showTitle = false;
+      if (titleTimer) {
+        clearTimeout(titleTimer);
+        titleTimer = null;
+      }
+    }
   }
 
   // 在組件卸載時清理計時器
@@ -92,6 +151,10 @@
     if (dialogueTimer) {
       clearTimeout(dialogueTimer);
       dialogueTimer = null;
+    }
+    if (titleTimer) {
+      clearTimeout(titleTimer);
+      titleTimer = null;
     }
   });
 </script>
@@ -127,17 +190,24 @@
       {/if}
 
       <!-- 頂部訊息顯示區域 -->
-      {#if $messageState}
-        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 flex flex-col items-center w-[130px]">
+      {#if showTitle}
+        <div 
+          class="absolute top-0 left-1/2 transform -translate-x-1/2 flex flex-col items-center w-[130px]"
+          in:fly={{ duration: 300, y: -20 }}
+          out:fly={{ duration: 300, y: -20 }}
+        >
           <div class="relative w-full">
             <img 
               src="{base}/images/ui/bubble_460x200.png" 
               alt="Title Bubble"
               class="w-full"
             />
-            <div class="absolute inset-0 flex items-start justify-center pt-2.5">
+            <div 
+              class="absolute inset-0 flex items-start justify-center pt-2.5"
+              in:fade={{ duration: 200, delay: 150 }}
+            >
               <span class="text-white/90 text-sm px-4">
-                {$messageState}
+                {$messageState.top || ($currentScene.showTitle && $currentScene.title)}
               </span>
             </div>
           </div>
@@ -145,16 +215,16 @@
       {/if}
 
       <!-- 底部訊息顯示區域 -->
-      {#if $messageState}
-        <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full flex flex-col items-center">
+      {#if $messageState.bottom}
+        <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
           <img 
             src="{base}/images/ui/message_box_1390x310.png" 
             alt="Message Box"
             class="w-full"
           />
           <div class="absolute inset-0 flex items-center justify-center px-8">
-            <span class="text-white/90 text-sm">
-              {$messageState}
+            <span class="text-white/90 text-sm whitespace-pre-line text-center">
+              {$messageState.bottom}
             </span>
           </div>
         </div>
@@ -171,7 +241,7 @@
           <div class="absolute inset-0 flex flex-col items-center justify-center px-8">
             {#each $currentScene.dialogues as dialogue}
               <span 
-                class="text-white/90 text-sm"
+                class="text-white/90 text-sm whitespace-pre-line text-center"
                 transition:fly={{ duration: 300, delay: 150, y: 10 }}
               >
                 {dialogue}
@@ -255,7 +325,8 @@
           <!-- 左側道具欄 -->
           <div class="w-1/3 h-full">
             <div class="grid grid-rows-4 h-full">
-              {#if !isItemScene($currentScene)}
+              <!-- 在放棄道具場景時也顯示道具欄 -->
+              {#if !isItemScene($currentScene) || $currentScene.id === 'abandon_item'}
                 {#each $gameState.items as item, i}
                   <div class="relative">
                     <!-- 道具格子背景圖 -->
