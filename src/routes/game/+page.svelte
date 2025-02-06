@@ -38,35 +38,44 @@
   }
 
   function handleChoice(choice: Choice) {
-    // 優先使用選項中定義的 transition，如果沒有則根據選項類型判斷
+    // 優先使用選項中定義的 transition
     if (choice.transition) {
       $transitionDirection = choice.transition;
     } else {
       $transitionDirection = 'right';  // 預設值
     }
     
-    choice.onSelect?.();
-    
-    if (choice.cost) {
-      if (choice.cost.type === 'health') {
-        if (choice.cost.amount >= 0) {
-          addHealth(choice.cost.amount);
-        } else {
-          consumeHealth(-choice.cost.amount);
-        }
-      } else if (choice.cost.type === 'spirit') {
-        if (choice.cost.amount >= 0) {
-          addSpirit(choice.cost.amount);
-        } else {
-          consumeSpirit(-choice.cost.amount);
-        }
-      } else if (choice.cost.type === 'money') {
-        addMoney(choice.cost.amount);
-      }
+    // 先執行 onSelect 檢查是否需要繼續執行後續邏輯
+    let shouldContinue = true;
+    if (choice.onSelect) {
+      const state = get(gameState);
+      // 如果 onSelect 返回 false，表示不要繼續執行
+      shouldContinue = choice.onSelect() !== false;
     }
+    
+    // 如果需要繼續執行，才處理 cost 和場景切換
+    if (shouldContinue) {
+      if (choice.cost) {
+        if (choice.cost.type === 'health') {
+          if (choice.cost.amount >= 0) {
+            addHealth(choice.cost.amount);
+          } else {
+            consumeHealth(-choice.cost.amount);
+          }
+        } else if (choice.cost.type === 'spirit') {
+          if (choice.cost.amount >= 0) {
+            addSpirit(choice.cost.amount);
+          } else {
+            consumeSpirit(-choice.cost.amount);
+          }
+        } else if (choice.cost.type === 'money') {
+          addMoney(choice.cost.amount);
+        }
+      }
 
-    if (choice.nextScene) {
-      changeScene(choice.nextScene);
+      if (choice.nextScene) {
+        changeScene(choice.nextScene);
+      }
     }
   }
 
@@ -202,7 +211,7 @@
               src={$currentScene.image}
               alt="Scene"
               class="w-full h-full object-cover absolute inset-0"
-              transition:fly={{ 
+              transition:fly={$currentScene.disableTransition ? undefined : { 
                 duration: 300, 
                 ...getTransition()
               }}

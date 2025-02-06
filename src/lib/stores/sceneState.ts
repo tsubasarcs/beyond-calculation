@@ -11,7 +11,8 @@ import {
   addNewItem,
   addHealth,     // 添加這個
   consumeSpirit,  // 添加這個
-  addSpirit      // 添加這個
+  addSpirit,      // 添加這個
+  consumeHealth, // 添加這個
 } from './gameState';
 import { base } from '$app/paths';
 
@@ -47,7 +48,8 @@ export interface Scene {
     nextScene: string;
     delay: number;  // 以毫秒為單位
   };
-  prevScene?: string;  // 添加 prevScene 屬性
+  prevScene?: string;
+  disableTransition?: boolean;  // 移除問號，設為必要屬性
 }
 
 // 定義道具相關場景類型
@@ -330,7 +332,7 @@ const scenes: Record<string, Scene | ItemScene> = {
       },
       {
         text: '向左走 體力-1',
-        nextScene: '',
+        nextScene: 'factory-1',
         cost: {
           type: 'health',
           amount: -1
@@ -433,24 +435,25 @@ const scenes: Record<string, Scene | ItemScene> = {
         },
         onSelect: () => {
           const state = get(gameState);
-          if (!state.visitedScenes.includes('peel-trash-can-1')) {
-            addVisitedScene('peel-trash-can-1');
-            changeScene('item_get', {
-              itemId: 'blade',
-              name: '美工刀片',
-              amount: 1,
-              description: '',
-              dialogues: ['一片美工刀片...還算銳利'],
-              image: `${base}/images/get_items/day1/blade.jpg`,
-              returnScene: 'trash-can-1',
-              successMessage: '美工刀片+1',  // 自定義獲得道具時的訊息
-              onGet: () => {
-                refillItem('cutter', 1);
-              }
-            });
-          } else {
+          if (state.visitedScenes.includes('peel-trash-can-1')) {
             showMessage('這邊剛剛翻過了');
+            return false;
           }
+
+          addVisitedScene('peel-trash-can-1');
+          changeScene('item_get', {
+            itemId: 'blade',
+            name: '美工刀片',
+            amount: 1,
+            description: '',
+            dialogues: ['一片美工刀片...還算銳利'],
+            image: `${base}/images/get_items/day1/blade.jpg`,
+            returnScene: 'trash-can-1',
+            successMessage: '美工刀片+1',  // 自定義獲得道具時的訊息
+            onGet: () => {
+              refillItem('cutter', 1);
+            }
+          });
         }
       },
       {
@@ -461,32 +464,33 @@ const scenes: Record<string, Scene | ItemScene> = {
         },
         onSelect: () => {
           const state = get(gameState);
-          if (!state.visitedScenes.includes('rummage-trash-can-1')) {
-            addVisitedScene('rummage-trash-can-1');
-            changeScene('item_get', {
-              itemId: 'blackiron-key-1',
-              name: '黑鐵鑰匙',
-              amount: 1,
-              description: '',
-              dialogues: ['一把有點畸形的鑰匙，不知道能用在哪'],
-              image: `${base}/images/get_items/day1/blackiron_key_01.jpg`,
-              returnScene: 'trash-can-1',
-              successMessage: '黑鐵鑰匙+1',  // 自定義獲得道具時的訊息
-              onGet: () => {
-                addNewItem({
-                  itemId: 'blackiron-key-1',
-                  name: '黑鐵鑰匙',
-                  type: 'normal',
-                  description: '灰色金屬鑰匙\n有點鏽蝕了，不知道用在哪?',
-                  image: `${base}/images/items/day1/blackiron_key_01.jpg`,
-                  usable: false,
-                });
-                refillItem('blackiron-key-1', 1);
-              }
-            });
-          } else {
+          if (state.visitedScenes.includes('rummage-trash-can-1')) {
             showMessage('這邊剛剛翻過了');
+            return false;
           }
+
+          addVisitedScene('rummage-trash-can-1');
+          changeScene('item_get', {
+            itemId: 'blackiron-key-1',
+            name: '黑鐵鑰匙',
+            amount: 1,
+            description: '',
+            dialogues: ['一把有點畸形的鑰匙，不知道能用在哪'],
+            image: `${base}/images/get_items/day1/blackiron_key_01.jpg`,
+            returnScene: 'trash-can-1',
+            successMessage: '黑鐵鑰匙+1',  // 自定義獲得道具時的訊息
+            onGet: () => {
+              addNewItem({
+                itemId: 'blackiron-key-1',
+                name: '黑鐵鑰匙',
+                type: 'normal',
+                description: '灰色金屬鑰匙\n有點鏽蝕了，不知道用在哪?',
+                image: `${base}/images/items/day1/blackiron_key_01.jpg`,
+                usable: false,
+              });
+              refillItem('blackiron-key-1', 1);
+            }
+          });
         }
       },
       {
@@ -497,31 +501,32 @@ const scenes: Record<string, Scene | ItemScene> = {
         },
         onSelect: () => {
           const state = get(gameState);
-          if (!state.visitedScenes.includes('scour-trash-can-1')) {
-            addVisitedScene('scour-trash-can-1');
-            changeScene('item_get', {
-              itemId: 'right-hand',
-              name: '右手',
-              amount: 1,
-              description: '',
-              dialogues: ['一隻手，可惜已經腐爛發臭了，不知道能用在哪裡'],
-              image: `${base}/images/get_items/day1/right_hand.jpg`,
-              returnScene: 'trash-can-1',
-              successMessage: '右手+1',  // 自定義獲得道具時的訊息
-              onGet: () => {
-                addNewItem({
-                  itemId: 'right-hand',
-                  name: '右手',
-                  type: 'normal',
-                  description: '一隻看起來是人類女性的右手掌，看起來已經腐爛了\n但如果情況艱難...這還是蛋白質',
-                  image: `${base}/images/items/day1/right_hand.jpg`,
-                });
-                refillItem('right-hand', 1);
-              }
-            });
-          } else {
+          if (state.visitedScenes.includes('scour-trash-can-1')) {
             showMessage('這邊剛剛翻過了');
+            return false;
           }
+
+          addVisitedScene('scour-trash-can-1');
+          changeScene('item_get', {
+            itemId: 'right-hand',
+            name: '右手',
+            amount: 1,
+            description: '',
+            dialogues: ['一隻手，可惜已經腐爛發臭了，不知道能用在哪裡'],
+            image: `${base}/images/get_items/day1/right_hand.jpg`,
+            returnScene: 'trash-can-1',
+            successMessage: '右手+1',  // 自定義獲得道具時的訊息
+            onGet: () => {
+              addNewItem({
+                itemId: 'right-hand',
+                name: '右手',
+                type: 'normal',
+                description: '一隻看起來是人類女性的右手掌，看起來已經腐爛了\n但如果情況艱難...這還是蛋白質',
+                image: `${base}/images/items/day1/right_hand.jpg`,
+              });
+              refillItem('right-hand', 1);
+            }
+          });
         }
       },
       {
@@ -733,7 +738,278 @@ const scenes: Record<string, Scene | ItemScene> = {
       }
     ]
   },
-  
+  'factory-1': {
+    id: 'factory-1',
+    showTitle: true,
+    title: '工廠',
+    image: `${base}/images/scenes/day1/factory_01.jpg`,
+    dialogues: ['大門深鎖的工廠，沒有絲毫動靜'],
+    choices: [
+      {
+        text: '繼續直走 體力-1',
+        nextScene: 'school-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      },
+      {
+        text: '工廠角落 體力-1',
+        nextScene: 'dump-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      },
+      {
+        text: '左側小路 體力-1',
+        nextScene: 'street-6',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      },
+      {
+        text: '返回',
+        nextScene: 'outdoor-2',
+        transition: 'left'
+      }
+    ]
+  },
+  'school-1': {
+    id: 'school-1',
+    showTitle: true,
+    title: '學校',
+    dialogues: ['這裡平常都是鎖上的...怎麼現在還是開的?'],
+    image: `${base}/images/scenes/day1/school_01.jpg`,
+    choices: [
+      {
+        text: '進入學校 體力-1',
+        nextScene: 'hallway',
+        cost: {
+          type: 'health',
+          amount: -1
+        },
+        condition: (state: GameState) => !state.visitedScenes.includes('hallway'),
+        onSelect: () => {
+          addVisitedScene('hallway');
+        }
+      },
+      {
+        text: '折返',
+        nextScene: 'factory-1',
+        transition: 'left'
+      },
+    ]
+  },
+  'hallway': {
+    id: 'hallway',
+    showTitle: true,
+    title: '學校走廊',
+    image: `${base}/images/scenes/day1/hallway  .jpg`,
+    dialogues: ['剛踏入走廊，一陣濃厚的臭味撲面而來', '空氣中混著潮濕與木頭的腐臭味'],
+    choices: [
+      {
+        text: '順著氣味繼續探索 體力-1',
+        nextScene: '',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      },
+      {
+        text: '走廊上的櫃子...有點可疑 體力-1',
+        nextScene: '',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      },
+      {
+        text: '返回',
+        nextScene: 'school-1',
+        transition: 'left'
+      }
+    ]
+  }, 
+  'street-6': {
+    id: 'street-6',
+    showTitle: true,
+    title: '工廠小路',
+    image: `${base}/images/scenes/day1/street_06.jpg`,
+    dialogues: ['肉...餓...肉...'],
+    choices: [
+      {
+        text: '繼續向前 體力-1',
+        nextScene: 'recycling-1-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      },
+      {
+        text: '返回',
+        nextScene: 'factory-1',
+        transition: 'left'
+      }
+    ]
+  },
+  'recycling-1-1': {
+    id: 'recycling-1-1',
+    showTitle: true,
+    title: '回收站',
+    image: `${base}/images/scenes/day1/recycling_01.jpg`,
+    dialogues: ['肉...餓...肉...'],
+    choices: [
+      {
+        text: '肉?',
+        nextScene: 'recycling-1-2'
+      },
+    ]
+  },
+  'recycling-1-2': {
+    id: 'recycling-1-2',
+    title: '回收站',
+    image: `${base}/images/scenes/day1/recycling_01.jpg`,
+    dialogues: ['觸覺...我想要觸覺...'],
+    disableTransition: true,
+    choices: [
+      {
+        text: '折返 體力-1',
+        nextScene: 'street-6',
+        transition: 'left',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      },
+    ]
+  },
+  'dump-1': {
+    id: 'dump-1',
+    showTitle: true,
+    title: '垃圾場',
+    image: `${base}/images/scenes/day1/dump_01.jpg`,
+    choices: [
+      {
+        text: '稍微翻翻看 體力-1',
+        cost: {
+          type: 'health',
+          amount: -1
+        },
+        onSelect: () => {
+          const state = get(gameState);
+          if (state.visitedScenes.includes('peel-dump-1')) {
+            showMessage('這邊剛剛翻過了');
+            return false;
+          } 
+          
+          addVisitedScene('peel-dump-1');
+          changeScene('item_get', {
+            itemId: 'seafood_can',
+            name: '海鮮罐頭',
+            amount: 1,
+            dialogues: ['找到了一顆海鮮罐頭'],
+            image: `${base}/images/get_items/day1/seafood_can.jpg`,
+            returnScene: 'dump-1',
+            successMessage: '海鮮罐頭+1',  // 自定義獲得道具時的訊息
+            onGet: () => {
+              addNewItem({
+                itemId: 'seafood_can',
+                name: '海鮮罐頭',
+                type: 'normal',
+                description: '一顆罐頭，很幸運地沒被開過',
+                image: `${base}/images/items/day1/seafood_can.jpg`,
+                usable: true,
+              });
+              refillItem('seafood_can', 1);
+            }
+          });
+        }
+      },
+      {
+        text: '努力翻找 體力-2',
+        cost: {
+          type: 'health',
+          amount: -2
+        },
+        onSelect: () => {
+          const state = get(gameState);
+          if (state.visitedScenes.includes('rummage-dump-1')) {
+            showMessage('這邊剛剛翻過了');
+            return false;
+          } 
+
+          addVisitedScene('rummage-dump-1');
+          changeScene('item_get', {
+            itemId: 'meat-02',
+            name: '眼',
+            amount: 1,
+            dialogues: ['恩...是一塊很詭異的肉呢...'],
+            image: `${base}/images/get_items/day1/meat_02.jpg`,
+            returnScene: 'dump-1',
+            successMessage: '肉+1',  // 自定義獲得道具時的訊息
+            onGet: () => {
+              addNewItem({
+                itemId: 'meat-02',
+                name: '眼',
+                type: 'normal',
+                description: '奇形怪狀的肉，還長顆會動的眼睛\n雖然看起來噁心，但只要看著它就會產生強烈飢餓感',
+                image: `${base}/images/items/day1/meat_02.jpg`,
+                usable: true,
+              });
+              refillItem('meat-02', 1);
+            }
+          });
+        }
+      },
+      {
+        text: '瘋狂挖掘 體力-3',
+        cost: {
+          type: 'health',
+          amount: -3
+        },
+        onSelect: () => {
+          const state = get(gameState);
+          if (state.visitedScenes.includes('scour-dump-1')) {
+            showMessage('這裡已經找過了...');
+            return false;  // 返回 false 表示不要繼續執行後續邏輯
+          }
+          
+          addVisitedScene('scour-dump-1');
+          changeScene('item_get', {
+            itemId: 'fruit-01',
+            name: '新鮮水果',
+            amount: 1,
+            dialogues: ['找到一顆還沒腐爛的水果，運氣不錯'],
+            image: `${base}/images/get_items/day1/fruit_01.jpg`,
+            returnScene: 'dump-1',
+            successMessage: '水果+1',
+            onGet: () => {
+              addNewItem({
+                itemId: 'fruit-01',
+                name: '新鮮水果',
+                type: 'normal',
+                description: '珍貴的新鮮水果，\n上一次看到這種東西已經不是在這個時代了，\n不知道為何能找到',
+                image: `${base}/images/items/day1/fruit_01.jpg`,
+                usable: true,
+              });
+              refillItem('fruit-01', 1);
+            }
+          });
+        }
+      },
+      {
+        text: '原路折返 體力-1',
+        nextScene: 'factory-1',
+        transition: 'left',
+        cost: {
+          type: 'health',
+          amount: -1
+        }
+      }
+    ]
+  },
   
   // ... 可以繼續添加更多場景
 
@@ -1142,7 +1418,60 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
   }
 
   // 根據道具類型和ID設置不同的選項
-  if (item.id === 'right-hand') {
+  if (item.id === 'fruit-01') {
+    newScene.choices = [
+      {
+        text: '吃掉\n(體力+5, 精神+7)',
+        nextScene: currentSceneId,  
+        transition: 'left', 
+        onSelect: () => {
+          useItem(itemId);  // 使用道具會移除它
+          addHealth(5);     // 增加體力
+          addSpirit(7);     // 增加精神
+          showMessage('吃掉了...');
+        }
+      },
+      {
+        text: '返回',
+        nextScene: currentSceneId
+      }
+    ];
+  } else if (item.id === 'meat-02') {
+    newScene.choices = [
+      {
+        text: '吃掉\n(精神+10, 體力-3)',
+        nextScene: currentSceneId,
+        transition: 'left', 
+        onSelect: () => {
+          useItem(itemId);  // 使用道具會移除它
+          addSpirit(10);     // 增加精神
+          consumeHealth(3);     // 增加體力
+          showMessage('吃掉了...');
+        }
+      },
+      { 
+        text: '返回',
+        nextScene: currentSceneId
+      }
+    ];
+  } else if (item.id === 'seafood_can') {
+    newScene.choices = [
+      {
+        text: '吃掉\n(體力+5)',
+        nextScene: currentSceneId,
+        transition: 'left',
+        onSelect: () => {
+          useItem(itemId);  // 使用道具會移除它
+          addHealth(5);     // 增加體力
+          showMessage('吃掉了...');
+        }
+      },
+      {
+        text: '返回',
+        nextScene: currentSceneId
+      }
+    ];
+  } else if (item.id === 'right-hand') {
     newScene.choices = [
       {
         text: '吃掉\n(體力+3, 精神-3)',  // 使用 \n 來換行
