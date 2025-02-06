@@ -28,6 +28,7 @@ export interface Choice {
   cost?: Cost;                     // 選擇的代價或獲得
   condition?: (state: GameState) => boolean;  // 選項出現的條件
   onSelect?: () => void;          // 選擇時的額外效果
+  transition?: 'left' | 'right';  // 新增：指定場景切換的方向
 }
 
 // 定義場景的介面
@@ -67,13 +68,13 @@ const scenes: Record<string, Scene | ItemScene> = {
     choices: [
       {
         text: '開始',
-        nextScene: 'sleep-1',
+        nextScene: 'sleep-1'
       },
     ],
     autoChange: {
       nextScene: 'day1-start',
       delay: 5000  // 5秒後自動切換
-    }
+    },
   },
   'day1-start': {
     id: 'day1-start',
@@ -90,7 +91,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     autoChange: {
       nextScene: 'sleep-1',
       delay: 5000  // 5秒後自動切換
-    }
+    },
   },
   'sleep-1': {
     id: 'sleep-1',
@@ -101,7 +102,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     choices: [
       {
         text: '起床',
-        nextScene: 'room-1',
+        nextScene: 'room-1'
       },
       {
         text: '繼續睡吧 體力+1',
@@ -230,6 +231,7 @@ const scenes: Record<string, Scene | ItemScene> = {
       {
         text: '返回房間 體力-1',
         nextScene: 'room-1',
+        transition: 'left',
         cost: {
           type: 'health',
           amount: -1
@@ -254,6 +256,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     choices: [
       {
         text: '出門吧 體力-1',
+        transition: 'left',
         nextScene: 'room-1',
         cost: {
           type: 'health',
@@ -304,7 +307,8 @@ const scenes: Record<string, Scene | ItemScene> = {
       },
       {
         text: '回到房間',
-        nextScene: 'room-1'
+        nextScene: 'room-1',
+        transition: 'left'
       }
     ],
   },
@@ -335,6 +339,7 @@ const scenes: Record<string, Scene | ItemScene> = {
       {
         text: '回到房間，今天到此為止 體力-1',
         nextScene: 'back-room-1',
+        transition: 'left',
         cost: {
           type: 'health',
           amount: -1
@@ -352,6 +357,7 @@ const scenes: Record<string, Scene | ItemScene> = {
       {
         text: '確認回到房間?',
         nextScene: 'end-of-day1',
+        transition: 'left',
       },
       {
         text: '還是...出門? 體力-1',
@@ -403,6 +409,7 @@ const scenes: Record<string, Scene | ItemScene> = {
       {
         text: '轉身回家 體力-1',
         nextScene: 'outdoor-2',
+        transition: 'left',
         cost: {
           type: 'health',
           amount: -1  
@@ -520,6 +527,7 @@ const scenes: Record<string, Scene | ItemScene> = {
       {
         text: '返回巷口 體力-1',
         nextScene: 'street-2',
+        transition: 'left',
         cost: {
           type: 'health',
           amount: -1
@@ -562,6 +570,7 @@ const scenes: Record<string, Scene | ItemScene> = {
       {
         text: '原路折返 體力-1',
         nextScene: 'street-2',
+        transition: 'left',
         cost: {
           type: 'health',
           amount: -1
@@ -580,6 +589,7 @@ const scenes: Record<string, Scene | ItemScene> = {
       {
         text: '原路折返 體力-1',
         nextScene: 'construction-1',
+        transition: 'left',
         cost: {
           type: 'health',
           amount: -1
@@ -598,6 +608,7 @@ const scenes: Record<string, Scene | ItemScene> = {
       {
         text: '折返 體力-1',
         nextScene: 'construction-1',
+        transition: 'left',
         cost: {
           type: 'health',
           amount: -1
@@ -620,6 +631,7 @@ const scenes: Record<string, Scene | ItemScene> = {
       {
         text: '返回工地 體力-1',
         nextScene: 'construction-1',
+        transition: 'left',
         cost: {
           type: 'health',
           amount: -1
@@ -716,7 +728,8 @@ const scenes: Record<string, Scene | ItemScene> = {
       },
       {
         text: '返回',
-        nextScene: 'vending-1'
+        nextScene: 'vending-1',
+        transition: 'left'
       }
     ]
   },
@@ -736,6 +749,7 @@ const scenes: Record<string, Scene | ItemScene> = {
       {
         text: '返回',
         nextScene: '',  // 將由程式動態設定
+        transition: 'left'
       }
     ]
   },
@@ -753,10 +767,12 @@ const scenes: Record<string, Scene | ItemScene> = {
       {
         text: '使用',
         nextScene: '',
+        transition: 'left'
       },
       {
         text: '返回',
         nextScene: '',
+        transition: 'left'
       }
     ]
   },
@@ -809,6 +825,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     choices: [
       {
         text: '返回',
+        transition: 'left',
         nextScene: ''  // 將在使用時動態設置
       }
     ]
@@ -868,6 +885,10 @@ export function getCurrentScene(): Scene {
   return scenes[get(sceneState).currentScene];
 }
 
+// 添加過渡方向的 store
+export const transitionDirection = writable<'left' | 'right'>('right');
+
+// 修改 changeScene 函數
 export function changeScene(sceneId: string, params?: any) {
   const currentSceneId = get(sceneState).currentScene;
   console.log('切換場景:', sceneId, params);
@@ -951,6 +972,7 @@ export function createItemGetScene(itemId: string, currentSceneId: string, param
     newScene.choices = [
       {
         text: '獲得道具',
+        transition: 'left',
         nextScene: itemParams?.returnScene || currentSceneId,
         onSelect: () => {
           if (itemParams?.onGet) {
@@ -989,6 +1011,7 @@ export function createItemGetScene(itemId: string, currentSceneId: string, param
     newScene.choices = [
       {
         text: '獲得道具',
+        transition: 'left',
         nextScene: itemParams?.returnScene || currentSceneId,
         onSelect: () => {
           if (itemParams?.onGet) {
@@ -1021,6 +1044,7 @@ export function createAbandonItemScene(currentSceneId: string): Scene | ItemScen
     newScene.choices = [
       {
         text: '返回',
+        transition: 'left',
         onSelect: () => {
           changeScene(currentSceneId);
         }
@@ -1033,6 +1057,7 @@ export function createAbandonItemScene(currentSceneId: string): Scene | ItemScen
   newScene.choices = [
     {
       text: '返回',
+      transition: 'left',
       onSelect: () => {
         // 清除 pendingItem 並返回獲得道具場景
         gameState.update(state => ({
@@ -1109,6 +1134,7 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
     newScene.choices = [
       {
         text: '返回',
+        transition: 'left',
         nextScene: currentSceneId
       }
     ];
@@ -1121,6 +1147,7 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
       {
         text: '吃掉\n(體力+3, 精神-3)',  // 使用 \n 來換行
         nextScene: currentSceneId,
+        transition: 'left',
         onSelect: () => {
           useItem(itemId);  // 使用道具會移除它
           addHealth(3);     // 增加體力
@@ -1137,6 +1164,7 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
     newScene.choices = [
       {
         text: '返回',
+        transition: 'left',
         nextScene: currentSceneId
       }
     ];
@@ -1144,6 +1172,7 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
     newScene.choices = [
       {
         text: '返回',
+        transition: 'left',
         nextScene: currentSceneId
       }
     ];
@@ -1152,6 +1181,7 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
       {
         text: '吃掉\n(體力+5, 精神+3)',
         nextScene: currentSceneId,
+        transition: 'left',
         onSelect: () => {
           useItem(itemId);    // 使用道具會移除它
           addHealth(5);       // 增加體力
@@ -1161,6 +1191,7 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
       },
       {
         text: '返回',
+        transition: 'left',
         nextScene: currentSceneId
       }
     ];
@@ -1168,6 +1199,7 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
     newScene.choices = [
       {
         text: '返回',
+        transition: 'left',
         nextScene: currentSceneId
       }
     ];
@@ -1175,11 +1207,13 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
     newScene.choices = [
       {
         text: '使用',
+        transition: 'left',
         nextScene: currentSceneId,
         onSelect: () => useItem(itemId)
       },
       {
         text: '返回',
+        transition: 'left',
         nextScene: currentSceneId
       }
     ];
@@ -1190,10 +1224,12 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
         {
           text: '無法使用',
           nextScene: currentSceneId,
+          transition: 'left',
           onSelect: () => showMessage('需要補充刀片')
         },
         {
           text: '返回',
+          transition: 'left',
           nextScene: currentSceneId
         }
       ];
@@ -1203,6 +1239,7 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
         {
           text: '使用',
           nextScene: currentSceneId,
+          transition: 'left',
           onSelect: () => {
             useItem(itemId);  // 使用道具會減少數量
             showMessage('使用了美工刀');
@@ -1210,7 +1247,8 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
         },
         {
           text: '返回',
-          nextScene: currentSceneId
+          nextScene: currentSceneId,
+          transition: 'left'
         }
       ];
     }
@@ -1220,13 +1258,15 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
       {
         text: '使用',
         nextScene: currentSceneId,
+        transition: 'left',
         onSelect: () => {
           useItem(itemId);
         }
       },
       {
         text: '返回',
-        nextScene: currentSceneId
+        nextScene: currentSceneId,
+        transition: 'left'
       }
     ];
   }
@@ -1267,6 +1307,7 @@ export function createItemBuyScene(itemId: string, currentSceneId: string, param
     newScene.choices = [
       {
         text: '金錢不足',
+        transition: 'left',
         nextScene: params?.returnScene || currentSceneId,
         onSelect: () => showMessage('沒有足夠的硬幣')
       }
@@ -1314,6 +1355,7 @@ export function createItemBuyScene(itemId: string, currentSceneId: string, param
       },
       {
         text: '返回',
+        transition: 'left',
         nextScene: params?.returnScene || currentSceneId
       }
     ];
@@ -1351,6 +1393,7 @@ export function createItemBuyScene(itemId: string, currentSceneId: string, param
     },
     {
       text: '返回',
+      transition: 'left',
       nextScene: params?.returnScene || currentSceneId
     }
   ];

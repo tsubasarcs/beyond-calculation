@@ -3,7 +3,6 @@
   import { goto } from '$app/navigation';
   import { 
     gameState, 
-    useItem, 
     consumeHealth, 
     consumeSpirit, 
     addMoney, 
@@ -18,9 +17,9 @@
     changeScene, 
     messageState, 
     resetSceneState,
-    showMessage
+    transitionDirection
   } from '$lib/stores/sceneState';
-  import { fly, fade } from 'svelte/transition';
+  import { fly, fade, slide } from 'svelte/transition';
   import { onDestroy } from 'svelte';
   import { get } from 'svelte/store';
 
@@ -39,6 +38,13 @@
   }
 
   function handleChoice(choice: Choice) {
+    // 優先使用選項中定義的 transition，如果沒有則根據選項類型判斷
+    if (choice.transition) {
+      $transitionDirection = choice.transition;
+    } else {
+      $transitionDirection = 'right';  // 預設值
+    }
+    
     choice.onSelect?.();
     
     if (choice.cost) {
@@ -157,6 +163,13 @@
       titleTimer = null;
     }
   });
+
+  // 計算過渡效果
+  function getTransition() {
+    return $transitionDirection === 'right' ? 
+      { x: 300 } :  // 從右向左
+      { x: -300 };  // 從左向右
+  }
 </script>
 
 <div class="min-h-screen bg-black flex justify-center">
@@ -180,14 +193,23 @@
     {/if}
 
     <!-- 主要內容區域 -->
-    <div class="flex-1 relative">
-      {#if $currentScene.image}
-        <img 
-          src={$currentScene.image} 
-          alt={$currentScene.title} 
-          class="w-full h-full object-cover"
-        />
-      {/if}
+    <div class="flex-1 relative overflow-hidden">
+      <!-- 主要圖片區域 -->
+      <div class="w-full h-full relative overflow-hidden">
+        {#if $currentScene.image}
+          {#key $currentScene.image}
+            <img 
+              src={$currentScene.image}
+              alt="Scene"
+              class="w-full h-full object-cover absolute inset-0"
+              transition:fly={{ 
+                duration: 300, 
+                ...getTransition()
+              }}
+            />
+          {/key}
+        {/if}
+      </div>
 
       <!-- 頂部訊息顯示區域 -->
       {#if showTitle}

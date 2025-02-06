@@ -40,14 +40,14 @@ export function getInitialState(): GameState {
     money: 0,
     items: [
       {
-        id: 'cutter',
-        name: '美工刀',
+        id: 'snapped-cutter',
+        name: '斷掉美工刀',
         type: 'normal',
-        description: '美工刀，用這個比用牙齒或指甲好多了。',
-        image: `${base}/images/items/day1/cutter.jpg`,
-        quantity: 3,
+        description: '沒電的手電筒。倒楣。\n去些地方很需要這東西...這副身體的功能太弱了',
+        image: `${base}/images/items/day1/snapped_cutter.jpg`,
+        quantity: 0,
         permanent: true,
-        usable: true
+        usable: false
       }
     ],
     visitedScenes: []
