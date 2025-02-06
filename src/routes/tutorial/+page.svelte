@@ -1,7 +1,8 @@
 <script lang="ts">
   import { base } from '$app/paths';
   import { goto } from '$app/navigation';
-
+  import { fly } from 'svelte/transition';
+  
   // 教學圖片陣列
   const introImages = [
     `${base}/images/introductions/1.jpg`,
@@ -50,9 +51,14 @@
   </button>
 
   <!-- 教學圖片 -->
-  <img 
-    src={introImages[currentIndex]} 
-    alt={`Tutorial ${currentIndex + 1}`} 
-    class="absolute inset-0 w-full h-full object-contain transition-opacity duration-300"
-  />
+  <div class="absolute inset-0 overflow-hidden">
+    {#key currentIndex}
+      <img 
+        src={introImages[currentIndex]} 
+        alt={`Tutorial ${currentIndex + 1}`} 
+        class="absolute inset-0 w-full h-full object-contain"
+        transition:fly={{ duration: 300, x: 300 }}
+      />
+    {/key}
+  </div>
 </div> 
