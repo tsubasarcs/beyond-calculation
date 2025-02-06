@@ -806,7 +806,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     id: 'hallway',
     showTitle: true,
     title: '學校走廊',
-    image: `${base}/images/scenes/day1/hallway  .jpg`,
+    image: `${base}/images/scenes/day1/hallway.jpg`,
     dialogues: ['剛踏入走廊，一陣濃厚的臭味撲面而來', '空氣中混著潮濕與木頭的腐臭味'],
     choices: [
       {
