@@ -28,6 +28,7 @@ export interface GameState {
   items: Item[];
   visitedScenes: string[];
   pendingItem?: any;  // 添加 pendingItem 屬性，用於暫存待獲得的道具資訊
+  inventoryDisabled: boolean; // 新增這行
 }
 
 // 將 getInitialState 改為導出函數
@@ -50,7 +51,8 @@ export function getInitialState(): GameState {
         usable: false
       }
     ],
-    visitedScenes: []
+    visitedScenes: [],
+    inventoryDisabled: false, // 初始化為 false
   };
 }
 
@@ -143,7 +145,7 @@ export function refillItem(itemId: string, amount: number) {
       item.name = '美工刀';
       item.description = '美工刀，用這個比用牙齒或指甲好多了。';
       item.image = `${base}/images/items/day1/cutter.jpg`;
-      item.usable = true;
+      item.usable = false;
     }
 
     item.quantity += amount;

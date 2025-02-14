@@ -20,12 +20,33 @@
     transitionDirection
   } from '$lib/stores/sceneState';
   import { fly, fade, slide } from 'svelte/transition';
-  import { onDestroy } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
   import { get } from 'svelte/store';
 
   // 將 store 訂閱移到頂層
   $: currentSceneValue = $currentScene;
   $: gameStateValue = $gameState;
+
+  // 在應用程序啟動時檢查 autoChange 並設置 inventoryDisabled
+  onMount(() => {
+    if (currentSceneValue.autoChange) {
+      gameState.update(state => ({
+        ...state,
+        inventoryDisabled: true
+      }));
+    } else {
+      gameState.update(state => ({
+        ...state,
+        inventoryDisabled: false
+      }));
+    }
+  });
+
+  $: {
+    console.log('currentSceneValue: ', currentSceneValue);
+    console.log('gameStateValue: ', gameStateValue);
+    console.log('inventoryDisabled: ', gameStateValue.inventoryDisabled);
+  }
 
   function isItemScene(scene: Scene | ItemScene): scene is ItemScene {
     return 'type' in scene && scene.type === 'item';
@@ -369,7 +390,8 @@
                     <!-- 道具按鈕 (覆蓋在背景圖上) -->
                     <button 
                       class="absolute inset-0 flex items-center justify-center hover:bg-white/10 transition-colors"
-                      on:click={() => handleItemClick(item.id)}
+                      on:click={() => !gameStateValue.inventoryDisabled && handleItemClick(item.id)}
+                      disabled={gameStateValue.inventoryDisabled}
                     >
                       <span class="text-sm text-white/70">{item.name} ({item.quantity})</span>
                     </button>
