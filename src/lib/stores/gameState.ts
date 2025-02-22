@@ -29,6 +29,8 @@ export interface GameState {
   visitedScenes: string[];
   pendingItem?: any;  // 添加 pendingItem 屬性，用於暫存待獲得的道具資訊
   inventoryDisabled: boolean; // 新增這行
+  deathEnabled: boolean; // 添加這個屬性來追蹤死亡是否有效
+  currentDay: string; // 添加當前天數狀態
 }
 
 // 將 getInitialState 改為導出函數
@@ -53,6 +55,8 @@ export function getInitialState(): GameState {
     ],
     visitedScenes: [],
     inventoryDisabled: false, // 初始化為 false
+    deathEnabled: true, // 預設死亡機制是開啟的
+    currentDay: 'day1' // 預設為 day1
   };
 }
 
@@ -226,4 +230,12 @@ export function addNewItem(params: {
       items: [...state.items, newItem]
     };
   });
+}
+
+// 添加更新當前天數的函數
+export function updateCurrentDay(day: string) {
+  gameState.update(state => ({
+    ...state,
+    currentDay: day
+  }));
 }

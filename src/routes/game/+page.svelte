@@ -9,7 +9,8 @@
     resetGameState,
     addHealth,
     addSpirit,
-    clearVisitedScenes
+    clearVisitedScenes,
+    updateCurrentDay
   } from '$lib/stores/gameState';
   import type { Scene, ItemScene, Choice } from '$lib/stores/sceneState';
   import { 
@@ -46,6 +47,21 @@
     console.log('currentSceneValue: ', currentSceneValue);
     console.log('gameStateValue: ', gameStateValue);
     console.log('inventoryDisabled: ', gameStateValue.inventoryDisabled);
+
+    // 檢查是否進入新的 day 場景（只在完全匹配 day1, day2 等時更新）
+    if (/^day\d+$/.test(currentSceneValue.id) && currentSceneValue.id !== gameStateValue.currentDay) {
+      updateCurrentDay(currentSceneValue.id);
+    }
+
+    // 檢查體力值是否為0且當前不在死亡場景，且死亡機制啟用
+    if (gameStateValue.deathEnabled && gameStateValue.health <= 0 && !currentSceneValue.id.startsWith('exhaustion-')) {
+      changeScene('exhaustion-1');
+    }
+
+    // 檢查精神值是否為0且當前不在死亡場景，且死亡機制啟用
+    if (gameStateValue.deathEnabled && gameStateValue.spirit <= 0 && !currentSceneValue.id.startsWith('collapse-')) {
+      changeScene('collapse-1');
+    }
   }
 
   function isItemScene(scene: Scene | ItemScene): scene is ItemScene {
@@ -212,14 +228,33 @@
       返回主畫面
     </button>
 
+    <!-- 顯示當前天數 -->
+    <div class="absolute top-16 left-4 text-white/70 text-sm border border-white/30 bg-black/50 px-3 py-1.5 rounded z-50">
+      {$gameState.currentDay.toUpperCase()}
+    </div>
+
     <!-- 只在開發環境顯示的測試按鈕 -->
     {#if import.meta.env.DEV}
-      <button 
-        class="absolute top-4 right-4 text-white/70 text-sm border border-white/30 bg-black/50 px-3 py-1.5 rounded hover:bg-white/10 transition-colors z-50"
-        on:click={clearVisitedScenes}
-      >
-        重置場景記錄
-      </button>
+      <div class="absolute top-4 right-4 flex flex-col gap-2">
+        <button 
+          class="text-white/70 text-sm border border-white/30 bg-black/50 px-3 py-1.5 rounded hover:bg-white/10 transition-colors z-50"
+          on:click={clearVisitedScenes}
+        >
+          重置場景記錄
+        </button>
+        <button 
+          class="text-white/70 text-sm border border-white/30 bg-black/50 px-3 py-1.5 rounded hover:bg-white/10 transition-colors z-50 flex items-center gap-2"
+          on:click={() => {
+            gameState.update(state => ({
+              ...state,
+              deathEnabled: !state.deathEnabled
+            }));
+          }}
+        >
+          <span>無視死亡</span>
+          <span class="text-sm text-white/50">({$gameState.deathEnabled ? '否' : '是'})</span>
+        </button>
+      </div>
     {/if}
 
     <!-- 主要內容區域 -->
@@ -377,8 +412,12 @@
           <!-- 左側道具欄 -->
           <div class="w-1/3 h-full">
             <div class="grid grid-rows-4 h-full">
-              <!-- 在放棄道具場景時也顯示道具欄 -->
-              {#if !isItemScene($currentScene) || $currentScene.id === 'abandon_item'}
+              <!-- 在放棄道具場景時也顯示道具欄，但在死亡場景時不顯示 -->
+              {#if (!isItemScene($currentScene) || $currentScene.id === 'abandon_item') && 
+                   !$currentScene.id.startsWith('sleep-') && 
+                   !$currentScene.id.startsWith('exhaustion-') &&
+                   !$currentScene.id.startsWith('collapse-') &&
+                   !$currentScene.id.startsWith('day1')}
                 {#each $gameState.items as item, i}
                   <div class="relative">
                     <!-- 道具格子背景圖 -->
@@ -409,7 +448,7 @@
                 {/each}
               {:else}
                 {#each Array(4) as _}
-                  <!-- 道具場景時的空格子 -->
+                  <!-- 道具場景或死亡場景時的空格子 -->
                   <div class="relative">
                     <img 
                       src="{base}/images/ui/Inventory_480x270.png" 
