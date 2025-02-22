@@ -234,7 +234,7 @@
     </div>
 
     <!-- 只在開發環境顯示的測試按鈕 -->
-    {#if import.meta.env.DEV}
+    <!-- {#if import.meta.env.DEV} -->
       <div class="absolute top-4 right-4 flex flex-col gap-2">
         <button 
           class="text-white/70 text-sm border border-white/30 bg-black/50 px-3 py-1.5 rounded hover:bg-white/10 transition-colors z-50"
@@ -255,7 +255,7 @@
           <span class="text-sm text-white/50">({$gameState.deathEnabled ? '否' : '是'})</span>
         </button>
       </div>
-    {/if}
+    <!-- {/if} -->
 
     <!-- 主要內容區域 -->
     <div class="flex-1 relative overflow-hidden">
