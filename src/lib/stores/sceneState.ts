@@ -1231,7 +1231,7 @@ const scenes: Record<string, Scene | ItemScene> = {
           if (cutter.quantity <= 0) {
             cutter.id = 'snapped-cutter';
             cutter.name = '斷掉美工刀';
-            cutter.description = '沒電的手電筒。倒楣。\n去些地方很需要這東西...這副身體的功能太弱了';
+            cutter.description = '從有意識後便隨身帶著的工具\n需要新的美工刀片，不然只是一支垃圾';
             cutter.image = `${base}/images/items/day1/snapped_cutter.jpg`;
             cutter.usable = false;
           }
