@@ -1,9 +1,12 @@
 <script lang="ts">
   import { base } from '$app/paths';
   import { goto } from '$app/navigation';
+  import { isDevMode } from '$lib/stores/devMode';
 
   function handleStart() {
-    goto(`${base}/tutorial`);
+    const tutorialPath = `${base}/tutorial`;
+    const targetUrl = $isDevMode ? `${tutorialPath}?mode=dev` : tutorialPath;
+    goto(targetUrl);
   }
 
   function handleKeydown(event: KeyboardEvent) {

@@ -2,7 +2,10 @@
   import { base } from '$app/paths';
   import { goto } from '$app/navigation';
   import { fly } from 'svelte/transition';
+  import { isDevMode } from '$lib/stores/devMode';
   
+  // No longer need export let data;
+
   // 教學圖片陣列
   const introImages = [
     `${base}/images/introductions/1.jpg`,
@@ -19,13 +22,18 @@
     if (currentIndex < introImages.length - 1) {
       currentIndex++;
     } else {
-      // 最後一張圖片時，進入遊戲
-      goto(`${base}/game`);
+      // 最後一張圖片時，進入遊戲，並根據 store 決定是否附加參數
+      const gamePath = `${base}/game`;
+      const targetUrl = $isDevMode ? `${gamePath}?mode=dev` : gamePath;
+      goto(targetUrl);
     }
   }
 
   function handleReturn() {
-    goto(base || '/');
+    // 返回主畫面時也檢查 store
+    const targetPath = base || '/';
+    const targetUrl = $isDevMode ? `${targetPath}?mode=dev` : targetPath;
+    goto(targetUrl);
   }
 
   function handleKeydown(event: KeyboardEvent) {

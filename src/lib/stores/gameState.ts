@@ -36,10 +36,10 @@ export interface GameState {
 // 將 getInitialState 改為導出函數
 export function getInitialState(): GameState {
   return {
-    health: 15,      // 初始體力 15
-    maxHealth: 20,   // 最大體力改為 20
-    spirit: 20,      // 初始精神 20
-    maxSpirit: 20,   // 最大精神改為 20
+    health: 25,      // 初始體力 15
+    maxHealth: 25,   // 最大體力改為 20
+    spirit: 25,      // 初始精神 20
+    maxSpirit: 25,   // 最大精神改為 20
     money: 0,
     items: [
       {

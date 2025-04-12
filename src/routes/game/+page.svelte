@@ -1,6 +1,7 @@
 <script lang="ts">
   import { base } from '$app/paths';
   import { goto } from '$app/navigation';
+  import { isDevMode } from '$lib/stores/devMode';
   import { 
     gameState, 
     consumeHealth, 
@@ -30,7 +31,7 @@
 
   // 在應用程序啟動時檢查 autoChange 並設置 inventoryDisabled
   onMount(() => {
-    if (currentSceneValue.autoChange) {
+    if (currentSceneValue && currentSceneValue.autoChange) {
       gameState.update(state => ({
         ...state,
         inventoryDisabled: true
@@ -44,34 +45,42 @@
   });
 
   $: {
-    console.log('currentSceneValue: ', currentSceneValue);
-    console.log('gameStateValue: ', gameStateValue);
-    console.log('inventoryDisabled: ', gameStateValue.inventoryDisabled);
+    if (currentSceneValue) {
+        console.log('currentSceneValue: ', currentSceneValue);
+        console.log('gameStateValue: ', gameStateValue);
+        console.log('inventoryDisabled: ', gameStateValue.inventoryDisabled);
 
-    // 檢查是否進入新的 day 場景（只在完全匹配 day1, day2 等時更新）
-    if (/^day\d+$/.test(currentSceneValue.id) && currentSceneValue.id !== gameStateValue.currentDay) {
-      updateCurrentDay(currentSceneValue.id);
-    }
+        // 檢查是否進入新的 day 場景（只在完全匹配 day1, day2 等時更新）
+        if (/^day\d+$/.test(currentSceneValue.id) && currentSceneValue.id !== gameStateValue.currentDay) {
+          updateCurrentDay(currentSceneValue.id);
+        }
 
-    // 檢查體力值是否為0且當前不在死亡場景，且死亡機制啟用
-    if (gameStateValue.deathEnabled && gameStateValue.health <= 0 && !currentSceneValue.id.startsWith('exhaustion-')) {
-      changeScene('exhaustion-1');
-    }
+        // 檢查體力值是否為0且當前不在死亡場景，且死亡機制啟用
+        if (gameStateValue.deathEnabled && gameStateValue.health <= 0 && !currentSceneValue.id.startsWith('exhaustion-')) {
+          changeScene('exhaustion-1');
+        }
 
-    // 檢查精神值是否為0且當前不在死亡場景，且死亡機制啟用
-    if (gameStateValue.deathEnabled && gameStateValue.spirit <= 0 && !currentSceneValue.id.startsWith('collapse-')) {
-      changeScene('collapse-1');
+        // 檢查精神值是否為0且當前不在死亡場景，且死亡機制啟用
+        if (gameStateValue.deathEnabled && gameStateValue.spirit <= 0 && !currentSceneValue.id.startsWith('collapse-')) {
+          changeScene('collapse-1');
+        }
+    } else {
+         // Handle the case where currentSceneValue is initially undefined if needed
+         console.log('Current scene is initially undefined');
     }
   }
 
   function isItemScene(scene: Scene | ItemScene): scene is ItemScene {
-    return 'type' in scene && scene.type === 'item';
+    return !!scene && 'type' in scene && scene.type === 'item';
   }
 
   async function handleReturn() {
     resetGameState();
     resetSceneState();
-    await goto(base || '/');
+    // Construct target URL based on dev mode from the store
+    const targetPath = base || '/';
+    const targetUrl = $isDevMode ? `${targetPath}?mode=dev` : targetPath;
+    await goto(targetUrl);
   }
 
   function handleChoice(choice: Choice) {
@@ -82,65 +91,68 @@
       $transitionDirection = 'right';  // 預設值
     }
     
-    // 先執行 onSelect 檢查是否需要繼續執行後續邏輯
-    let shouldContinue = true;
+    // 1. 立刻處理成本 (Cost)
+    if (choice.cost) {
+      if (choice.cost.type === 'health') {
+        if (choice.cost.amount >= 0) {
+          addHealth(choice.cost.amount);
+        } else {
+          consumeHealth(-choice.cost.amount);
+        }
+      } else if (choice.cost.type === 'spirit') {
+        if (choice.cost.amount >= 0) {
+          addSpirit(choice.cost.amount);
+        } else {
+          consumeSpirit(-choice.cost.amount);
+        }
+      } else if (choice.cost.type === 'money') {
+        addMoney(choice.cost.amount);
+      }
+    }
+
+    // 2. 執行 onSelect 回調
+    let onSelectHandledTransition = false;
     if (choice.onSelect) {
-      const state = get(gameState);
-      // 如果 onSelect 返回 false，表示不要繼續執行
-      shouldContinue = choice.onSelect() !== false;
+      // 如果 onSelect 返回 false，表示它已經處理了場景切換
+      const result = choice.onSelect(); 
+      onSelectHandledTransition = result === false;
     }
     
-    // 如果需要繼續執行，才處理 cost 和場景切換
-    if (shouldContinue) {
-      if (choice.cost) {
-        if (choice.cost.type === 'health') {
-          if (choice.cost.amount >= 0) {
-            addHealth(choice.cost.amount);
-          } else {
-            consumeHealth(-choice.cost.amount);
-          }
-        } else if (choice.cost.type === 'spirit') {
-          if (choice.cost.amount >= 0) {
-            addSpirit(choice.cost.amount);
-          } else {
-            consumeSpirit(-choice.cost.amount);
-          }
-        } else if (choice.cost.type === 'money') {
-          addMoney(choice.cost.amount);
-        }
-      }
-
-      if (choice.nextScene) {
-        changeScene(choice.nextScene);
-      }
+    // 3. 如果 onSelect 沒有處理場景切換，且存在 nextScene，則執行預設的場景切換
+    if (!onSelectHandledTransition && choice.nextScene) {
+      changeScene(choice.nextScene);
     }
   }
 
   function handleItemClick(itemId: string) {
-    // 使用從頂層訂閱的值
-    if (currentSceneValue.id === 'abandon_item') {
+    if (currentSceneValue && currentSceneValue.id === 'abandon_item') {
       const state = get(gameState);
       const pendingItem = state.pendingItem;
       
       // 移除選擇的道具
       gameState.update(state => ({
         ...state,
-        items: state.items.filter(i => i.id !== itemId)
+        items: state.items.filter(i => i.id !== itemId) // Correctly removes clicked item
       }));
 
       // 返回 item_get 場景
       if (pendingItem) {
+        // Pass pendingItem details to item_get
         changeScene('item_get', {
-          ...pendingItem,  // 傳遞完整的 pendingItem 資訊
-          itemId: pendingItem.itemId,  // 確保 itemId 存在
-          returnScene: currentSceneValue.prevScene
+          ...pendingItem, // Pass original params
+          itemId: pendingItem.itemId, // Ensure itemId is present
+          // returnScene was already part of pendingItem if set correctly
         });
+      } else {
+          // Use the prevScene from the potentially undefined currentSceneValue safely
+           changeScene(currentSceneValue?.prevScene || 'day1'); // Go back if no pending item
       }
-      return;
+      // No need to return false here, scene change handles it
+      return; 
     }
 
-    // 原有的道具使用邏輯
-    if (!isItemScene(currentSceneValue)) {
+    // Add check before calling isItemScene
+    if (currentSceneValue && !isItemScene(currentSceneValue)) {
       changeScene('item_use', { itemId });
     }
   }
@@ -178,7 +190,7 @@
       }
     }
 
-    const shouldShowTitle = $messageState.top || ($currentScene.showTitle && $currentScene.title);
+    const shouldShowTitle = $messageState.top || ($currentScene?.showTitle && $currentScene?.title);
     
     // 當需要顯示標題時
     if (shouldShowTitle) {
@@ -221,20 +233,24 @@
 <div class="min-h-screen bg-black flex justify-center">
   <div class="w-full max-w-md relative min-h-screen flex flex-col">
     <!-- 返回按鈕 -->
+    {#if $isDevMode}
     <button 
       class="absolute top-4 left-4 text-white/70 text-sm border border-white/30 bg-black/50 px-3 py-1.5 rounded hover:bg-white/10 transition-colors z-50"
       on:click={handleReturn}
     >
       返回主畫面
     </button>
+    {/if}
 
     <!-- 顯示當前天數 -->
+    {#if $isDevMode}
     <div class="absolute top-16 left-4 text-white/70 text-sm border border-white/30 bg-black/50 px-3 py-1.5 rounded z-50">
       {$gameState.currentDay.toUpperCase()}
     </div>
+    {/if}
 
     <!-- 只在開發環境顯示的測試按鈕 -->
-    <!-- {#if import.meta.env.DEV} -->
+    {#if $isDevMode}
       <div class="absolute top-4 right-4 flex flex-col gap-2">
         <button 
           class="text-white/70 text-sm border border-white/30 bg-black/50 px-3 py-1.5 rounded hover:bg-white/10 transition-colors z-50"
@@ -255,14 +271,14 @@
           <span class="text-sm text-white/50">({$gameState.deathEnabled ? '否' : '是'})</span>
         </button>
       </div>
-    <!-- {/if} -->
+    {/if}
 
     <!-- 主要內容區域 -->
     <div class="flex-1 relative overflow-hidden">
       <!-- 主要圖片區域 -->
       <div class="w-full h-full relative overflow-hidden">
-        {#if $currentScene.image}
-          {#key $currentScene.image}
+        {#if $currentScene?.image}
+          {#key $currentScene.id}
             <img 
               src={$currentScene.image}
               alt="Scene"
@@ -277,9 +293,9 @@
       </div>
 
       <!-- 頂部訊息顯示區域 -->
-      {#if showTitle}
+      {#if showTitle && $currentScene}
         <div 
-          class="absolute top-0 left-1/2 transform -translate-x-1/2 flex flex-col items-center w-[130px]"
+          class="absolute top-0 left-1/2 transform -translate-x-1/2 flex flex-col items-center w-[130px] z-20"
           in:fly={{ duration: 300, y: -20 }}
           out:fly={{ duration: 300, y: -20 }}
         >
@@ -303,7 +319,7 @@
 
       <!-- 底部訊息顯示區域 -->
       {#if $messageState.bottom}
-        <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
+        <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex flex-col items-center w-full z-20">
           <img 
             src="{base}/images/ui/message_box_1390x310.png" 
             alt="Message Box"
@@ -315,9 +331,9 @@
             </span>
           </div>
         </div>
-      {:else if showDialogues && $currentScene.dialogues && $currentScene.dialogues.length > 0}
+      {:else if showDialogues && $currentScene?.dialogues && $currentScene.dialogues.length > 0}
         <div 
-          class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full flex flex-col items-center"
+          class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full flex flex-col items-center z-20"
           transition:fly={{ duration: 300, y: 20 }}
         >
           <img 
@@ -413,12 +429,14 @@
           <div class="w-1/3 h-full">
             <div class="grid grid-rows-4 h-full">
               <!-- 在放棄道具場景時也顯示道具欄，但在死亡場景時不顯示 -->
-              {#if (!isItemScene($currentScene) || $currentScene.id === 'abandon_item') && 
+              {#if $currentScene && (!isItemScene($currentScene) || $currentScene.id === 'abandon_item') && 
                    !$currentScene.id.startsWith('sleep-') && 
                    !$currentScene.id.startsWith('exhaustion-') &&
                    !$currentScene.id.startsWith('collapse-') &&
                    !$currentScene.id.startsWith('day1')}
                 {#each $gameState.items as item, i}
+                  {@const isAbandonScene = $currentScene?.id === 'abandon_item'}
+                  {@const isNonAbandonable = item.id === 'snapped-cutter' || item.id === 'cutter'}
                   <div class="relative">
                     <!-- 道具格子背景圖 -->
                     <img 
@@ -429,8 +447,17 @@
                     <!-- 道具按鈕 (覆蓋在背景圖上) -->
                     <button 
                       class="absolute inset-0 flex items-center justify-center hover:bg-white/10 transition-colors"
-                      on:click={() => !gameStateValue.inventoryDisabled && handleItemClick(item.id)}
-                      disabled={gameStateValue.inventoryDisabled}
+                      class:cursor-not-allowed={isAbandonScene && isNonAbandonable}
+                      class:opacity-50={isAbandonScene && isNonAbandonable}
+                      on:click={() => {
+                        // Disable click for non-abandonable items in abandon scene
+                        if (!(isAbandonScene && isNonAbandonable)) {
+                           if (!gameStateValue.inventoryDisabled) {
+                             handleItemClick(item.id);
+                           }
+                        }
+                      }}
+                      disabled={gameStateValue.inventoryDisabled || (isAbandonScene && isNonAbandonable)}
                     >
                       <span class="text-sm text-white/70">{item.name} ({item.quantity})</span>
                     </button>
@@ -465,46 +492,49 @@
           <div class="w-2/3 h-full">
             <!-- 選項欄 -->
             <div class="grid grid-rows-4 h-full">
-              {#each $currentScene.choices.filter(choice => !choice.condition || choice.condition($gameState)) as choice}
-                <div class="relative">
-                  <!-- 選項背景圖 -->
-                  <img 
-                    src="{base}/images/ui/options_960x270.png" 
-                    alt="Option Slot"
-                    class="w-full h-full"
-                  />
-                  <!-- 選項按鈕 -->
-                  <button 
-                    class="absolute inset-0 flex flex-col items-center justify-center hover:bg-white/10 transition-colors px-4 whitespace-pre-line"
-                    on:click={() => handleChoice(choice)}
-                  >
-                    {#if choice.cost}
-                      <span class="text-sm text-white/70">
-                        {choice.text.split(' ').slice(0, -1).join(' ')}
-                      </span>
-                      <span class="text-sm text-white/50 mt-1">
-                        {#if choice.cost.type === 'money'}
-                          (錢幣 {choice.cost.amount >= 0 ? '+' : ''}{choice.cost.amount})
-                        {:else}
-                          ({choice.cost.type === 'health' ? '體力' : '精神'} {choice.cost.amount >= 0 ? '+' : ''}{choice.cost.amount})
-                        {/if}
-                      </span>
-                    {:else}
-                      <span class="text-sm text-white/70">{choice.text}</span>
-                    {/if}
-                  </button>
-                </div>
-              {/each}
-              {#each Array(4 - $currentScene.choices.filter(choice => !choice.condition || choice.condition($gameState)).length) as _}
-                <!-- 空選項格子 -->
-                <div class="relative">
-                  <img 
-                    src="{base}/images/ui/options_960x270.png" 
-                    alt="Empty Option Slot"
-                    class="w-full h-full"
-                  />
-                </div>
-              {/each}
+              {#if $currentScene}
+                {@const availableChoices = $currentScene.choices.filter(choice => !choice.condition || choice.condition($gameState))}
+                {#each availableChoices as choice}
+                  <div class="relative">
+                    <!-- 選項背景圖 -->
+                    <img 
+                      src="{base}/images/ui/options_960x270.png" 
+                      alt="Option Slot"
+                      class="w-full h-full"
+                    />
+                    <!-- 選項按鈕 -->
+                    <button 
+                      class="absolute inset-0 flex flex-col items-center justify-center hover:bg-white/10 transition-colors px-4 whitespace-pre-line"
+                      on:click={() => handleChoice(choice)}
+                    >
+                      {#if choice.cost}
+                        <span class="text-sm text-white/70">
+                          {choice.text.split(' ').slice(0, -1).join(' ')}
+                        </span>
+                        <span class="text-sm text-white/50 mt-1">
+                          {#if choice.cost.type === 'money'}
+                            (錢幣 {choice.cost.amount >= 0 ? '+' : ''}{choice.cost.amount})
+                          {:else}
+                            ({choice.cost.type === 'health' ? '體力' : '精神'} {choice.cost.amount >= 0 ? '+' : ''}{choice.cost.amount})
+                          {/if}
+                        </span>
+                      {:else}
+                        <span class="text-sm text-white/70">{choice.text}</span>
+                      {/if}
+                    </button>
+                  </div>
+                {/each}
+                {#each Array(4 - availableChoices.length) as _}
+                  <!-- 空選項格子 -->
+                  <div class="relative">
+                    <img 
+                      src="{base}/images/ui/options_960x270.png" 
+                      alt="Empty Option Slot"
+                      class="w-full h-full"
+                    />
+                  </div>
+                {/each}
+              {/if}
             </div>
           </div>
         </div>
