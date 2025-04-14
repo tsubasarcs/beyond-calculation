@@ -2,10 +2,12 @@
   import { base } from '$app/paths';
   import { goto } from '$app/navigation';
   import { isDevMode } from '$lib/stores/devMode';
+  import { playRequest } from '$lib/stores/audioState';
 
   function handleStart() {
     const tutorialPath = `${base}/tutorial`;
     const targetUrl = $isDevMode ? `${tutorialPath}?mode=dev` : tutorialPath;
+    playRequest.update(n => n + 1);
     goto(targetUrl);
   }
 

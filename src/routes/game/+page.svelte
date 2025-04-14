@@ -2,6 +2,7 @@
   import { base } from '$app/paths';
   import { goto } from '$app/navigation';
   import { isDevMode } from '$lib/stores/devMode';
+  import { isMusicPlaying } from '$lib/stores/audioState';
   import { 
     gameState, 
     consumeHealth, 
@@ -246,6 +247,10 @@
     {#if $isDevMode}
     <div class="absolute top-16 left-4 text-white/70 text-sm border border-white/30 bg-black/50 px-3 py-1.5 rounded z-50">
       {$gameState.currentDay.toUpperCase()}
+    </div>
+    <!-- Show music status below day display in dev mode -->
+    <div class="absolute top-[calc(4rem+1.5rem+0.5rem)] left-4 text-white/70 text-xs border border-white/30 bg-black/50 px-2 py-1 rounded z-50">
+      音樂: {$isMusicPlaying ? '播放中' : '已暫停'}
     </div>
     {/if}
 

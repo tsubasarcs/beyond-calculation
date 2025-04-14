@@ -51,12 +51,14 @@
   tabindex="0"
 >
   <!-- 返回按鈕 -->
+  {#if $isDevMode}
   <button 
     class="absolute top-4 left-4 text-white/70 text-sm border border-white/30 bg-black/50 px-3 py-1.5 rounded hover:bg-white/10 transition-colors z-50"
     on:click|stopPropagation={handleReturn}
   >
     返回主畫面
   </button>
+  {/if}
 
   <!-- 教學圖片 -->
   <div class="absolute inset-0 overflow-hidden">
