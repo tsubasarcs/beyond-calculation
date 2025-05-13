@@ -45,7 +45,7 @@ const scenes: Record<string, Scene | ItemScene> = {
     choices: [
       {
         text: '睡吧',
-        nextScene: '' // TODO: Define next day scene?
+        nextScene: 'day2'
       }
     ]
   },

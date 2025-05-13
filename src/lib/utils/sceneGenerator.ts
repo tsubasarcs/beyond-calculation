@@ -268,6 +268,26 @@ export function createItemUseScene(itemId: string, currentSceneId: string): Scen
             useChoice = { text: '吃掉\n(體力+3, 精神-3)', onSelect: () => { useItem(itemId); addHealth(3); consumeSpirit(3); showMessage('吃掉了...'); return true; } };
         } else if (item.id === 'toast') {
             useChoice = { text: '吃掉\n(體力+5, 精神+3)', onSelect: () => { useItem(itemId); addHealth(5); addSpirit(3); showMessage('吃掉了...'); return true; } };
+        } else if (item.id === 'alcohol-1') {
+            useChoice = { text: '喝掉\n(精神+5)', onSelect: () => { useItem(itemId); addSpirit(5); showMessage('喝掉了...'); return true; } };
+        } else if (item.id === 'bar-1') {
+            useChoice = { text: '吃掉\n(體力+7, 精神+3)', onSelect: () => { useItem(itemId); addHealth(7); addSpirit(3); showMessage('吃掉了...'); return true; } };
+        } else if (item.id === 'coffee-1') {
+            useChoice = { text: '喝掉\n(體力+3, 精神+7)', onSelect: () => { useItem(itemId); addHealth(3); addSpirit(7); showMessage('喝掉了...'); return true; } };
+        } else if (item.id === 'electrolyte-1') {
+            useChoice = { text: '喝掉\n(體力+10, 精神+5)', onSelect: () => { useItem(itemId); addHealth(10); addSpirit(5); showMessage('喝掉了...'); return true; } };
+        } else if (item.id === 'left-1') {
+            useChoice = { text: '吃掉\n(體力+10, 精神+5)', onSelect: () => { useItem(itemId); addHealth(10); addSpirit(5); showMessage('吃掉了...'); return true; } };
+        } else if (item.id === 'bread-1') {
+            useChoice = { text: '吃掉\n(體力+6, 精神+3)', onSelect: () => { useItem(itemId); addHealth(6); addSpirit(3); showMessage('吃掉了...'); return true; } };
+        } else if (item.id === 'cigarette-1') {
+            useChoice = { text: '抽掉\n(精神+3)', onSelect: () => { useItem(itemId); addSpirit(3); showMessage('抽掉了...'); return true; } };
+        } else if (item.id === 'meat-3') {
+            useChoice = { text: '吃掉\n(體力+10, 精神-5)', onSelect: () => { useItem(itemId); addHealth(10); consumeSpirit(5); showMessage('吃掉了...'); return true; } };
+        } else if (item.id === 'meat-4') {
+            useChoice = { text: '吃掉\n(體力+10, 精神-3)', onSelect: () => { useItem(itemId); addHealth(10); consumeSpirit(3); showMessage('吃掉了...'); return true; } };
+        } else if (item.id === 'tablet') {
+            useChoice = { text: '吃掉\n(體力+7, 精神+7)', onSelect: () => { useItem(itemId); addHealth(7); addSpirit(7); showMessage('吃掉了...'); return true; } };
         } else if (item.type === 'recovery') {
             useChoice = { text: '使用', onSelect: () => { useItem(itemId); return true; } };
         }

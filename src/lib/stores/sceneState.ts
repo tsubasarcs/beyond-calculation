@@ -10,7 +10,17 @@ import day1OutdoorExplorationScenes from '../scenes/day1/outdoor_exploration';
 import day1SchoolScenes from '../scenes/day1/school';
 import commonItemInteractionScenes from '../scenes/common/itemInteractions';
 import commonDeathScenes from '../scenes/common/deathScenes';
-
+import day2CoreScenes from '../scenes/day2/core';
+import day2RoomScenes from '../scenes/day2/room';
+import day2OutdoorExplorationScenes from '../scenes/day2/outdoor_exploration';
+import day2CatScenes from '../scenes/day2/cat';
+import day2DepartmentScenes from '../scenes/day2/department';
+import day2RecyclingScenes from '../scenes/day2/recycling';
+import day2DumpScenes from '../scenes/day2/dump';
+import day2TeacherScenes from '../scenes/day2/teacher';
+import day2LockerScenes from '../scenes/day2/locker';
+import day2SchoolScenes from '../scenes/day2/school';
+import day2WorkerScenes from '../scenes/day2/worker';
 // Import scene generator functions
 import {
     createItemGetScene,
@@ -68,6 +78,17 @@ export const scenes: Record<string, Scene | ItemScene> = {
     ...day1SchoolScenes,
     ...commonItemInteractionScenes,
     ...commonDeathScenes,
+    ...day2CoreScenes,
+    ...day2RoomScenes,
+    ...day2OutdoorExplorationScenes,
+    ...day2CatScenes,
+    ...day2DepartmentScenes,
+    ...day2RecyclingScenes,
+    ...day2DumpScenes,
+    ...day2TeacherScenes,
+    ...day2LockerScenes,
+    ...day2SchoolScenes,
+    ...day2WorkerScenes,
 };
 
 // --- Scene State Management ---

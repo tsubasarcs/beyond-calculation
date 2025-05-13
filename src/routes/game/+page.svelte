@@ -12,7 +12,9 @@
     addHealth,
     addSpirit,
     clearVisitedScenes,
-    updateCurrentDay
+    updateCurrentDay,
+    restoreHealthToMax,
+    restoreSpiritToMax
   } from '$lib/stores/gameState';
   import type { Scene, ItemScene, Choice } from '$lib/stores/sceneState';
   import { 
@@ -54,6 +56,9 @@
         // 檢查是否進入新的 day 場景（只在完全匹配 day1, day2 等時更新）
         if (/^day\d+$/.test(currentSceneValue.id) && currentSceneValue.id !== gameStateValue.currentDay) {
           updateCurrentDay(currentSceneValue.id);
+          restoreHealthToMax();
+          restoreSpiritToMax();
+          console.log('New day started. Health and Spirit restored.');
         }
 
         // 檢查體力值是否為0且當前不在死亡場景，且死亡機制啟用

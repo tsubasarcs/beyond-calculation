@@ -61,8 +61,19 @@ const scenes: Record<string, Scene | ItemScene> = {
         text: '醒來',
         onSelect: () => {
           const currentDay = get(gameState).currentDay;
-          resetGameState();
-          resetSceneState();
+          if (currentDay === 'day1') {
+            // 如果是第一天，完全重置遊戲狀態
+            resetGameState();
+            resetSceneState();
+          } else {
+            // 如果不是第一天，只重置體力和精神值，保留道具欄
+            gameState.update(state => ({
+              ...state,
+              health: state.maxHealth,
+              spirit: state.maxSpirit
+            }));
+            resetSceneState();
+          }
           changeScene(currentDay);
           return false;
         }
@@ -173,8 +184,19 @@ const scenes: Record<string, Scene | ItemScene> = {
         text: '醒來',
         onSelect: () => {
           const currentDay = get(gameState).currentDay;
-          resetGameState();
-          resetSceneState();
+          if (currentDay === 'day1') {
+            // 如果是第一天，完全重置遊戲狀態
+            resetGameState();
+            resetSceneState();
+          } else {
+            // 如果不是第一天，只重置體力和精神值，保留道具欄
+            gameState.update(state => ({
+              ...state,
+              health: state.maxHealth,
+              spirit: state.maxSpirit
+            }));
+            resetSceneState();
+          }
           changeScene(currentDay);
           return false;
         }

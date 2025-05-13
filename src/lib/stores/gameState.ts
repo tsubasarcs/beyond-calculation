@@ -239,3 +239,19 @@ export function updateCurrentDay(day: string) {
     currentDay: day
   }));
 }
+
+// Function to restore health to maximum
+export function restoreHealthToMax() {
+  gameState.update(state => ({
+    ...state,
+    health: state.maxHealth
+  }));
+}
+
+// Function to restore spirit to maximum
+export function restoreSpiritToMax() {
+  gameState.update(state => ({
+    ...state,
+    spirit: state.maxSpirit
+  }));
+}
